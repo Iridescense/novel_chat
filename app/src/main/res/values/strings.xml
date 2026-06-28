@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">对话小说</string>
+    <string name="bookshelf">书架</string>
+    <string name="create">创作台</string>
+    <string name="settings">设置</string>
+    <string name="save">保存</string>
+    <string name="delete">删除</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确认</string>
+    <string name="search_hint">搜索剧本标题…</string>
+    <string name="new_novel">新建剧本</string>
+    <string name="edit_novel">编辑剧本信息</string>
+    <string name="novel_title">标题</string>
+    <string name="novel_description">简介</string>
+    <string name="unsaved_changes">未保存的修改</string>
+    <string name="unsaved_message">当前有未保存的修改，是否保存？</string>
+    <string name="draft">草稿</string>
+    <string name="completed">完成</string>
+    <string name="mark_complete">标记为完成</string>
+    <string name="mark_draft">变回草稿</string>
+    <string name="export_success">导出成功</string>
+    <string name="import_success">导入成功</string>
+    <string name="chapter">章节</string>
+    <string name="segment">节</string>
+    <string name="role_management">角色管理</string>
+    <string name="add_role">添加角色</string>
+    <string name="input_hint">输入消息…</string>
+    <string name="send">发送</string>
+    <string name="preview">预览</string>
+    <string name="auto_play">自动播放</string>
+    <string name="font_size">字号</string>
+    <string name="dark_mode">夜间模式</string>
+    <string name="background">背景设置</string>
+    <string name="reading_progress">第 %1$d 条 / 共 %2$d 条</string>
+</resources>
