@@ -144,7 +144,9 @@ fun BottomInputBar(
                     },
                     modifier = Modifier.size(48.dp),
                     enabled = text.isNotBlank(),
-                    containerColor = MaterialTheme.colorScheme.primary
+                    colors = IconButtonDefaults.filledIconButtonColors(
+containerColor = MaterialTheme.colorScheme.primary
+)
                 ) {
                     Icon(
                         Icons.Default.Send,
