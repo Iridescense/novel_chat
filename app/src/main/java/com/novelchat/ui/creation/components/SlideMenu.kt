@@ -190,7 +190,7 @@ fun SlideMenu(
                                 },
                                 leadingContent = {
                                     Icon(
-                                        if (isSegCurrent) Icons.Default.Circle else Icons.Default.CircleOutlined,
+                                        if (isSegCurrent) Icons.Default.Circle else Icons.Default.RadioButtonUnchecked,
                                         contentDescription = null,
                                         modifier = Modifier.size(12.dp),
                                         tint = if (isSegCurrent) MaterialTheme.colorScheme.primary
