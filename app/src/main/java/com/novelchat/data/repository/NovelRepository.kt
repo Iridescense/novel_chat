@@ -14,6 +14,8 @@ class NovelRepository(private val dao: NovelDao) {
 
     fun getBookshelfNovels(): Flow<List<Novel>> = dao.getBookshelfNovels()
 
+    fun getOriginalNovels(): Flow<List<Novel>> = dao.getOriginalNovels()
+
     suspend fun getNovelById(id: Long): Novel? = dao.getNovelById(id)
 
     suspend fun insertNovel(novel: Novel): Long = dao.insertNovel(novel)
@@ -23,6 +25,9 @@ class NovelRepository(private val dao: NovelDao) {
     suspend fun deleteNovel(novel: Novel) = dao.deleteNovel(novel)
 
     suspend fun deleteNovelById(id: Long) = dao.deleteNovelById(id)
+
+    suspend fun hasBookshelfCopy(sourceNovelId: Long): Boolean =
+        dao.getBookshelfCopyBySourceId(sourceNovelId) != null
 
     // ========== Role ==========
 
@@ -152,5 +157,38 @@ class NovelRepository(private val dao: NovelDao) {
         }
 
         return novelId
+    }
+
+    /**
+     * 将创作台原件深拷贝到书架（副本标记 isInBookshelf=true）
+     */
+    suspend fun deepCopyNovelToBookshelf(sourceNovelId: Long): Long {
+        val original = dao.getNovelById(sourceNovelId) ?: return -1L
+        val roles = dao.getRolesByNovelIdSync(sourceNovelId)
+        val chapters = dao.getChaptersByNovelIdSync(sourceNovelId)
+        val segments = dao.getSegmentsByNovelIdSync(sourceNovelId)
+        val messages = dao.getMessagesByNovelIdSync(sourceNovelId)
+
+        // 副本使用全新的 ID，标记为书架副本
+        val copyNovel = original.copy(
+            id = 0,
+            isInBookshelf = true,
+            sourceNovelId = sourceNovelId,
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
+        )
+
+        return importNovel(copyNovel, roles, chapters, segments, messages)
+    }
+
+    /**
+     * 更新书架副本：删除旧副本，重新深拷贝
+     */
+    suspend fun updateBookshelfCopy(sourceNovelId: Long): Long {
+        val existing = dao.getBookshelfCopyBySourceId(sourceNovelId)
+        if (existing != null) {
+            dao.deleteNovelById(existing.id)
+        }
+        return deepCopyNovelToBookshelf(sourceNovelId)
     }
 }

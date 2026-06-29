@@ -9,10 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -119,6 +116,14 @@ fun CreationListScreen(
     menuNovel?.let { novel ->
         var renameText by remember { mutableStateOf(novel.title) }
         var descText by remember { mutableStateOf(novel.description) }
+        var hasCopy by remember { mutableStateOf(false) }
+        val scope = rememberCoroutineScope()
+
+        // 检查是否已有书架副本
+        LaunchedEffect(novel.id) {
+            hasCopy = viewModel.hasBookshelfCopy(novel.id)
+        }
+
         AlertDialog(
             onDismissRequest = { menuNovel = null },
             title = { Text(novel.title) },
@@ -132,20 +137,17 @@ fun CreationListScreen(
                     Spacer(Modifier.height(8.dp))
                     TextButton(onClick = {
                         menuNovel = null
-                        viewModel.toggleBookshelf(novel, !novel.isInBookshelf)
+                        if (hasCopy) {
+                            viewModel.updateBookshelfCopy(novel.id)
+                        } else {
+                            viewModel.addToBookshelf(novel.id)
+                        }
                     }, modifier = Modifier.fillMaxWidth()) {
                         Icon(
-                            if (novel.isInBookshelf) Icons.Default.Sync else Icons.Default.Add,
+                            Icons.Default.Add,
                             contentDescription = null
                         )
-                        Spacer(Modifier.width(8.dp)); Text(if (novel.isInBookshelf) "更新至书架" else "添加至书架")
-                    }
-                    TextButton(onClick = {
-                        menuNovel = null
-                        viewModel.exportNovel(novel)
-                    }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.FileDownload, contentDescription = null)
-                        Spacer(Modifier.width(8.dp)); Text("导出")
+                        Spacer(Modifier.width(8.dp)); Text(if (hasCopy) "更新至书架" else "添加至书架")
                     }
                     TextButton(onClick = {
                         viewModel.deleteNovel(novel)

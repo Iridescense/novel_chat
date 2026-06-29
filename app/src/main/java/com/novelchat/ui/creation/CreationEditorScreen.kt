@@ -50,6 +50,7 @@ fun CreationEditorScreen(
     val allChapterMessages by viewModel.allChapterMessages.collectAsState()
     val messages by viewModel.messages.collectAsState()
     val currentProtagonist by viewModel.currentProtagonist.collectAsState()
+    val currentSegmentIndex by viewModel.currentSegmentIndex.collectAsState()
     val hasUnsavedChanges by viewModel.hasUnsavedChanges.collectAsState()
     val showSlideMenu by viewModel.showSlideMenu.collectAsState()
     val editingHiddenNote by viewModel.editingHiddenNote.collectAsState()
@@ -259,7 +260,7 @@ fun CreationEditorScreen(
             ) {
                 SlideMenu(
                     segments = segments,
-                    currentSegmentIndex = viewModel.currentSegmentIndex.value,
+                    currentSegmentIndex = currentSegmentIndex,
                     roles = roles,
                     currentProtagonistId = currentProtagonist?.id,
                     hasUnsavedChanges = hasUnsavedChanges,

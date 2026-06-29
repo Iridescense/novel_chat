@@ -50,7 +50,7 @@ fun BookshelfScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // 导出文件选择器
+    // 导出文件选择器（单个剧本）
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->
@@ -60,6 +60,26 @@ fun BookshelfScreen(
                     viewModel.exportNovelToUri(novel, it)
                 }
             }
+        }
+    }
+
+    // 导出文件选择器（从 FAB 发起）
+    var exportTargetNovelId by remember { mutableStateOf<Long?>(null) }
+    val exportFromFabLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        uri?.let { uriVal ->
+            exportTargetNovelId?.let { nid ->
+                scope.launch {
+                    val app = context.applicationContext as NovelChatApp
+                    val repo = AppModule.getRepository(app)
+                    val novel = repo.getNovelById(nid)
+                    if (novel != null) {
+                        viewModel.exportNovelToUri(novel, uriVal)
+                    }
+                }
+            }
+            exportTargetNovelId = null
         }
     }
 
@@ -80,6 +100,10 @@ fun BookshelfScreen(
         }
     }
 
+    // FAB 菜单状态
+    var showFabMenu by remember { mutableStateOf(false) }
+    var showExportPicker by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -90,11 +114,41 @@ fun BookshelfScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { importLauncher.launch(arrayOf("*/*")) },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.FileOpen, contentDescription = "导入剧本")
+            Box {
+                FloatingActionButton(
+                    onClick = { showFabMenu = !showFabMenu },
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(
+                        if (showFabMenu) Icons.Default.Close else Icons.Default.FileOpen,
+                        contentDescription = "导入/导出"
+                    )
+                }
+                DropdownMenu(
+                    expanded = showFabMenu,
+                    onDismissRequest = { showFabMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("导入剧本") },
+                        onClick = {
+                            showFabMenu = false
+                            importLauncher.launch(arrayOf("*/*"))
+                        },
+                        leadingIcon = { Icon(Icons.Default.FileOpen, contentDescription = null) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("导出剧本") },
+                        onClick = {
+                            showFabMenu = false
+                            if (novels.isEmpty()) {
+                                // 无剧本可导出
+                            } else {
+                                showExportPicker = true
+                            }
+                        },
+                        leadingIcon = { Icon(Icons.Default.FileDownload, contentDescription = null) }
+                    )
+                }
             }
         }
     ) { padding ->
@@ -171,6 +225,33 @@ fun BookshelfScreen(
         }
     }
 
+    // 导出选择对话框（FAB 导出）
+    if (showExportPicker) {
+        AlertDialog(
+            onDismissRequest = { showExportPicker = false },
+            title = { Text("选择要导出的剧本") },
+            text = {
+                Column {
+                    novels.forEach { novel ->
+                        TextButton(
+                            onClick = {
+                                showExportPicker = false
+                                exportTargetNovelId = novel.id
+                                exportFromFabLauncher.launch("${novel.title}.json")
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(novel.title, style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showExportPicker = false }) { Text("取消") }
+            }
+        )
+    }
+
     // 新建剧本对话框
     if (showNewDialog) {
         NovelEditDialog(
@@ -209,20 +290,13 @@ fun BookshelfScreen(
             text = {
                 Column {
                     TextButton(onClick = {
-                        menuNovel = null
-                        onOpenCreation(novel.id)
-                    }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Edit, contentDescription = null)
-                        Spacer(Modifier.width(8.dp)); Text("编辑到创作台")
-                    }
-                    TextButton(onClick = {
                         exportLauncher.launch("${novel.title}.json")
                     }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.FileDownload, contentDescription = null)
                         Spacer(Modifier.width(8.dp)); Text("导出")
                     }
                     TextButton(onClick = {
-                        viewModel.toggleBookshelf(novel, false)
+                        viewModel.removeNovelFromBookshelf(novel)
                         menuNovel = null
                     }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.Unpublished, contentDescription = null, tint = MaterialTheme.colorScheme.error)

@@ -74,8 +74,16 @@ object JsonExporter {
         val export = gson.fromJson(json, NovelExport::class.java)
             ?: throw IllegalArgumentException("JSON 格式错误")
 
+        // 导入的剧本总是作为书架书籍（非创作台副本）
+        val importedNovel = export.novel.copy(
+            id = 0,
+            isInBookshelf = true,
+            sourceNovelId = null,
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
+        )
         return repository.importNovel(
-            novel = export.novel.copy(id = 0),
+            novel = importedNovel,
             roles = export.roles.map { it.copy(id = 0) },
             chapters = export.chapters.map { it.copy(id = 0) },
             segments = export.segments.map { it.copy(id = 0) },

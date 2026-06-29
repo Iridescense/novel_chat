@@ -31,12 +31,12 @@ class BookshelfViewModel(application: Application) : AndroidViewModel(applicatio
     val editingNovel: StateFlow<Novel?> = _editingNovel.asStateFlow()
 
     init {
-        // 监听全部剧本（创作台用）
+        // 监听创作台原件（bookshelfViewModel 同时被创作台复用）
         viewModelScope.launch {
-            repository.getAllNovels().collect { _allNovels.value = it }
+            repository.getOriginalNovels().collect { _allNovels.value = it }
         }
 
-        // 监听搜索（书架用）
+        // 监听书架副本
         viewModelScope.launch {
             _searchQuery
                 .debounce(300)
@@ -99,10 +99,29 @@ class BookshelfViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun toggleBookshelf(novel: Novel, addToBookshelf: Boolean) {
+    fun removeNovelFromBookshelf(novel: Novel) {
         viewModelScope.launch {
-            repository.updateNovel(novel.copy(isInBookshelf = addToBookshelf, updatedAt = System.currentTimeMillis()))
+            repository.deleteNovel(novel)
         }
+    }
+
+    /** 深拷贝创作台原件到书架 */
+    fun addToBookshelf(novelId: Long) {
+        viewModelScope.launch {
+            repository.deepCopyNovelToBookshelf(novelId)
+        }
+    }
+
+    /** 更新书架副本（删除旧副本 → 重新深拷贝） */
+    fun updateBookshelfCopy(novelId: Long) {
+        viewModelScope.launch {
+            repository.updateBookshelfCopy(novelId)
+        }
+    }
+
+    /** 检查创作台原件是否已在书架中有副本 */
+    suspend fun hasBookshelfCopy(novelId: Long): Boolean {
+        return repository.hasBookshelfCopy(novelId)
     }
 
     fun exportNovelToUri(novel: Novel, uri: android.net.Uri) {

@@ -119,7 +119,9 @@ fun SlideMenu(
                                        else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
                             )
                         },
-                        modifier = Modifier.clickable { onSwitchSegment(segIndex) }
+                        modifier = Modifier.clickable {
+                            onSwitchSegment(segIndex)
+                        }
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 }
@@ -143,9 +145,7 @@ fun SlideMenu(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary)
                         },
-                        leadingContent = {
-                            RoleAvatar(role = role, modifier = Modifier.size(28.dp))
-                        },
+                        leadingContent = {},
                         trailingContent = {
                             IconButton(onClick = { onDeleteRole(role) }) {
                                 Icon(Icons.Default.Delete, contentDescription = "删除",

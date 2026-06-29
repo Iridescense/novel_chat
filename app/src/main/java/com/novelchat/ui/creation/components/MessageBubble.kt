@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -97,8 +96,6 @@ fun MessageBubble(
             MaterialTheme.colorScheme.onSurfaceVariant
         }
 
-        val avatar = RoleAvatar(role, Modifier.size(44.dp))
-
         Row(
             modifier = modifier
                 .fillMaxWidth()
@@ -106,12 +103,6 @@ fun MessageBubble(
             horizontalArrangement = if (isRight) Arrangement.End else Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 头像永远放在代码第一位：
-            // Arrangement.Start → 第一位=最左边（他人）
-            // Arrangement.End   → 第一位=最右边（主角）
-            avatar
-            Spacer(Modifier.width(12.dp))
-
             Column(
                 horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
                 modifier = Modifier.widthIn(max = 280.dp)
@@ -223,44 +214,4 @@ private fun HiddenNoteContent(noteText: String?) {
     }
 }
 
-@Composable
-fun RoleAvatar(
-    role: Role?,
-    modifier: Modifier = Modifier
-) {
-    if (role == null) {
-        Surface(
-            modifier = modifier,
-            shape = RoundedCornerShape(50),
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-        ) {}
-        return
-    }
 
-    val bgColor = try {
-        Color(android.graphics.Color.parseColor(role.color))
-    } catch (_: Exception) {
-        MaterialTheme.colorScheme.primary
-    }
-
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(50),
-        color = bgColor
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = if (role.avatarType == Role.AVATAR_TEXT && role.avatarValue.isNotBlank()) {
-                    role.avatarValue.take(2)
-                } else {
-                    role.name.take(1)
-                },
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                ),
-                color = MaterialTheme.colorScheme.onPrimary
-            )
-        }
-    }
-}

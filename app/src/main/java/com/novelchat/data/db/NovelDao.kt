@@ -21,6 +21,12 @@ interface NovelDao {
     @Query("SELECT * FROM novels WHERE isInBookshelf = 1 AND title LIKE '%' || :query || '%' ORDER BY createdAt DESC")
     fun searchNovels(query: String): Flow<List<Novel>>
 
+    @Query("SELECT * FROM novels WHERE sourceNovelId IS NULL ORDER BY createdAt DESC")
+    fun getOriginalNovels(): Flow<List<Novel>>
+
+    @Query("SELECT * FROM novels WHERE sourceNovelId = :sourceNovelId LIMIT 1")
+    suspend fun getBookshelfCopyBySourceId(sourceNovelId: Long): Novel?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNovel(novel: Novel): Long
 

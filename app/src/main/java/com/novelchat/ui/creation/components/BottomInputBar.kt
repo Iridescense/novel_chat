@@ -137,7 +137,6 @@ fun BottomInputBar(
                                     .padding(horizontal = 12.dp, vertical = 8.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    RoleAvatar(role, Modifier.size(24.dp))
                                     Spacer(Modifier.width(8.dp))
                                     Text(role.name, style = MaterialTheme.typography.bodySmall)
                                 }
@@ -210,8 +209,6 @@ fun BottomInputBar(
                                     else MaterialTheme.colorScheme.surface
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                RoleAvatar(role, Modifier.size(36.dp))
-                                Spacer(Modifier.width(12.dp))
                                 Text(role.name, style = MaterialTheme.typography.bodyLarge)
                                 Spacer(Modifier.weight(1f))
                                 if (isCurrent) Text("当前主角", style = MaterialTheme.typography.labelSmall,
