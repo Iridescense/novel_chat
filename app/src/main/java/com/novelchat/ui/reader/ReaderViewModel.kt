@@ -102,9 +102,9 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
             _items.value = readerItems
 
-            // 设置起始位置
-            val startIdx = startIndex.coerceIn(0, readerItems.size - 1)
-            _currentIndex.value = startIdx
+            // 设置起始位置：空内容时设为 0
+            _currentIndex.value = if (readerItems.isEmpty()) 0
+                else startIndex.coerceIn(0, readerItems.size - 1)
         }
     }
 
