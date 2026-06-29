@@ -35,7 +35,6 @@ fun CreationEditorScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // 加载剧本
     LaunchedEffect(novelId) {
         viewModel.loadNovel(novelId)
     }
@@ -57,7 +56,6 @@ fun CreationEditorScreen(
     var showExitDialog by remember { mutableStateOf(false) }
     var actionMessage by remember { mutableStateOf<Message?>(null) }
 
-    // 返回拦截
     BackHandler {
         if (hasUnsavedChanges) {
             showExitDialog = true
@@ -66,12 +64,11 @@ fun CreationEditorScreen(
         }
     }
 
-    // 滑动检测：左滑打开菜单
     val swipeModifier = Modifier.pointerInput(Unit) {
         detectHorizontalDragGestures(
-            onDragEnd = { /* 由 onDrag 处理 */ },
+            onDragEnd = { },
             onHorizontalDrag = { _, dragAmount ->
-                if (dragAmount < -50) { // 左滑超过 50px
+                if (dragAmount < -50) {
                     viewModel.toggleSlideMenu()
                 }
             }
@@ -105,7 +102,6 @@ fun CreationEditorScreen(
                     }
                 },
                 actions = {
-                    // 预览按钮
                     IconButton(onClick = {
                         if (messages.isNotEmpty()) {
                             onPreview(novelId, 0)
@@ -113,7 +109,6 @@ fun CreationEditorScreen(
                     }) {
                         Icon(Icons.Default.PlayArrow, contentDescription = "预览")
                     }
-                    // 保存按钮
                     IconButton(onClick = { viewModel.save() }) {
                         Icon(
                             Icons.Default.Save,
@@ -122,7 +117,6 @@ fun CreationEditorScreen(
                                    else MaterialTheme.colorScheme.outline
                         )
                     }
-                    // 菜单按钮
                     IconButton(onClick = { viewModel.toggleSlideMenu() }) {
                         Icon(Icons.Default.Menu, contentDescription = "菜单")
                     }
@@ -138,9 +132,7 @@ fun CreationEditorScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // 主内容区
             Column(modifier = Modifier.fillMaxSize()) {
-                // 消息流
                 val listState = rememberLazyListState()
 
                 LazyColumn(
@@ -151,7 +143,6 @@ fun CreationEditorScreen(
                         .then(swipeModifier),
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
-                    // 章节间分割线
                     if (currentSegment != null && currentSegment!!.title.isNotBlank()) {
                         item {
                             SegmentDivider(
@@ -180,7 +171,6 @@ fun CreationEditorScreen(
                     }
                 }
 
-                // 底部输入栏
                 BottomInputBar(
                     senderType = inputSenderType,
                     protagonistName = currentProtagonist?.name ?: "未设置",
@@ -192,7 +182,6 @@ fun CreationEditorScreen(
                 )
             }
 
-            // 左侧滑菜单（覆盖层）
             AnimatedVisibility(
                 visible = showSlideMenu,
                 enter = slideInHorizontally { it },
@@ -218,7 +207,7 @@ fun CreationEditorScreen(
                     onAddRole = { name, color, avatarType, avatarValue ->
                         viewModel.addRole(name, color, avatarType, avatarValue)
                     },
-                    onEditRole = { /* TODO */ },
+                    onEditRole = { },
                     onDeleteRole = { viewModel.deleteRole(it) },
                     onSave = { viewModel.save() },
                     onToggleStatus = { viewModel.toggleNovelStatus() },
@@ -228,7 +217,6 @@ fun CreationEditorScreen(
         }
     }
 
-    // 未保存退出对话框
     if (showExitDialog) {
         AlertDialog(
             onDismissRequest = { showExitDialog = false },
@@ -255,7 +243,6 @@ fun CreationEditorScreen(
         )
     }
 
-    // 编辑隐藏附注对话框
     editingHiddenNote?.let { msg ->
         var noteText by remember { mutableStateOf(msg.hiddenNote ?: "") }
         AlertDialog(
@@ -289,7 +276,6 @@ fun CreationEditorScreen(
         )
     }
 
-    // 消息长按操作对话框
     actionMessage?.let { msg ->
         AlertDialog(
             onDismissRequest = { actionMessage = null },
