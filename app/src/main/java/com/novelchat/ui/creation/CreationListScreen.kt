@@ -107,6 +107,33 @@ fun CreationListScreen(
             onDismiss = { viewModel.hideNewNovelDialog() }
         )
     }
+
+    // 长按菜单对话框
+    menuNovel?.let { novel ->
+        AlertDialog(
+            onDismissRequest = { menuNovel = null },
+            title = { Text(novel.title) },
+            text = {
+                Column {
+                    TextButton(onClick = {
+                        viewModel.showEditNovelDialog(novel)
+                        menuNovel = null
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.DriveFileRenameOutline, contentDescription = null)
+                        Spacer(Modifier.width(8.dp)); Text("重命名")
+                    }
+                    TextButton(onClick = {
+                        viewModel.deleteNovel(novel)
+                        menuNovel = null
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.width(8.dp)); Text("删除", color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { menuNovel = null }) { Text("关闭") } }
+        )
+    }
 }
 
 @Composable
@@ -149,35 +176,6 @@ private fun NovelCreateDialog(
             TextButton(onClick = onDismiss) { Text("取消") }
         }
     )
-}
-
-    // 长按菜单对话框
-    menuNovel?.let { novel ->
-        var newTitle by remember { mutableStateOf(novel.title) }
-        AlertDialog(
-            onDismissRequest = { menuNovel = null },
-            title = { Text(novel.title) },
-            text = {
-                Column {
-                    TextButton(onClick = {
-                        viewModel.showEditNovelDialog(novel)
-                        menuNovel = null
-                    }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.DriveFileRenameOutline, contentDescription = null)
-                        Spacer(Modifier.width(8.dp)); Text("重命名")
-                    }
-                    TextButton(onClick = {
-                        viewModel.deleteNovel(novel)
-                        menuNovel = null
-                    }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                        Spacer(Modifier.width(8.dp)); Text("删除", color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            },
-            confirmButton = { TextButton(onClick = { menuNovel = null }) { Text("关闭") } }
-        )
-    }
 }
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
