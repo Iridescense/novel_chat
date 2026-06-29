@@ -95,6 +95,20 @@ fun ReaderScreen(
                 // 点触推进模式：点击增加可见消息数
                 val displayCount = if (showAll) items.size else visibleCount
 
+                // 带节分割线的显示列表
+                val displayItems = remember(items, displayCount) {
+                    val result = mutableListOf<Any>()
+                    var lastSegId = -1L
+                    items.take(displayCount).forEach { item ->
+                        if (item.segmentId != lastSegId) {
+                            result.add("divider_${item.segmentId}")
+                            lastSegId = item.segmentId
+                        }
+                        result.add(item)
+                    }
+                    result
+                }
+
                 LazyColumn(
                     state = listState,
                     modifier = Modifier
@@ -111,19 +125,6 @@ fun ReaderScreen(
                         },
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
-                    // 带节分割线的消息列表
-                    val displayItems = remember(items, displayCount) {
-                        val list = mutableListOf<Any>() // String = divider, ReaderItem = message
-                        var lastSegId = -1L
-                        items.take(displayCount).forEach { item ->
-                            if (item.segmentId != lastSegId) {
-                                list.add("divider_${item.segmentId}")
-                                lastSegId = item.segmentId
-                            }
-                            list.add(item)
-                        }
-                        list
-                    }
                     itemsIndexed(displayItems, key = { _, item ->
                         when (item) {
                             is String -> item

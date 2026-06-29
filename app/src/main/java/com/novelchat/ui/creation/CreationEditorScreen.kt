@@ -22,6 +22,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.novelchat.data.model.Message
+import com.novelchat.data.model.Segment
 import com.novelchat.ui.creation.components.*
 import kotlinx.coroutines.launch
 
@@ -148,7 +149,7 @@ fun CreationEditorScreen(
                     val listState = rememberLazyListState()
 
                     // 构建带分割线的显示列表
-                    val displayItems = remember(allChapterMessages) {
+                    val displayItems: List<Pair<Segment?, Message?>> = remember(allChapterMessages) {
                         val items = mutableListOf<Pair<Segment?, Message?>>()
                         var lastSegId = -1L
                         for ((seg, msg) in allChapterMessages) {
@@ -169,13 +170,13 @@ fun CreationEditorScreen(
                             .then(swipeModifier),
                         contentPadding = PaddingValues(vertical = 8.dp)
                     ) {
-                        itemsIndexed(displayItems, key = { _, item ->
+                        itemsIndexed(displayItems, key = { _: Int, item: Pair<Segment?, Message?> ->
                             when {
                                 item.first != null -> "seg_${item.first!!.id}"
                                 item.second != null -> "msg_${item.second!!.id}"
                                 else -> "empty"
                             }
-                        }) { _, item ->
+                        }) { _: Int, item: Pair<Segment?, Message?> ->
                             val seg = item.first
                             val msg = item.second
                             if (seg != null) {
