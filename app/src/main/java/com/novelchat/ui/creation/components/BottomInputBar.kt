@@ -46,7 +46,10 @@ fun BottomInputBar(
             ) {
                 // 按钮1：主角
                 Button(
-                    onClick = { showProtagonistDialog = true },
+                    onClick = {
+                        onSenderTypeChange(SenderType.PROTAGONIST)
+                        showProtagonistDialog = true
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (senderType == SenderType.PROTAGONIST)
                             MaterialTheme.colorScheme.primary
@@ -62,7 +65,10 @@ fun BottomInputBar(
 
                 // 按钮2：其他人
                 Button(
-                    onClick = { showOtherRoles = !showOtherRoles },
+                    onClick = {
+                        onSenderTypeChange(SenderType.OTHER)
+                        showOtherRoles = !showOtherRoles
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (senderType == SenderType.OTHER)
                             MaterialTheme.colorScheme.primary

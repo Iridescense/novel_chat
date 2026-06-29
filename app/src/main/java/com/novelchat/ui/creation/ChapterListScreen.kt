@@ -140,15 +140,8 @@ fun ChapterListScreen(
             text = {
                 Column {
                     OutlinedTextField(value = renameText, onValueChange = { renameText = it },
-                        label = { Text("重命名") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        label = { Text("章节名") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
-                    TextButton(onClick = {
-                        viewModel.renameChapter(chapter, renameText.trim())
-                        menuChapter = null
-                    }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Edit, contentDescription = null)
-                        Spacer(Modifier.width(8.dp)); Text("重命名")
-                    }
                     TextButton(onClick = {
                         viewModel.deleteChapter(chapter)
                         menuChapter = null
@@ -158,7 +151,13 @@ fun ChapterListScreen(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { menuChapter = null }) { Text("关闭") } }
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.renameChapter(chapter, renameText.trim())
+                    menuChapter = null
+                }) { Text("保存") }
+            },
+            dismissButton = { TextButton(onClick = { menuChapter = null }) { Text("取消") } }
         )
     }
 }

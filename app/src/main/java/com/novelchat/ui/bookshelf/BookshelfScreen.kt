@@ -28,6 +28,8 @@ import com.novelchat.NovelChatApp
 import com.novelchat.data.model.Novel
 import com.novelchat.util.AppModule
 import com.novelchat.util.JsonExporter
+import java.io.File
+import android.os.Environment
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -185,6 +187,9 @@ fun BookshelfScreen(
 
     // 长按菜单
     menuNovel?.let { novel ->
+        val scope = rememberCoroutineScope()
+        val context = LocalContext.current
+
         AlertDialog(
             onDismissRequest = { menuNovel = null },
             title = { Text(novel.title) },
@@ -193,41 +198,23 @@ fun BookshelfScreen(
                     TextButton(onClick = {
                         menuNovel = null
                         onOpenCreation(novel.id)
-                    }) {
+                    }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.Edit, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("编辑到创作台")
+                        Spacer(Modifier.width(8.dp)); Text("编辑到创作台")
                     }
                     TextButton(onClick = {
-                        viewModel.showEditNovelDialog(novel)
                         menuNovel = null
-                    }) {
-                        Icon(Icons.Default.DriveFileRenameOutline, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("重命名")
-                    }
-                    TextButton(onClick = {
-                        viewModel.toggleNovelStatus(novel)
-                        menuNovel = null
-                    }) {
-                        Icon(
-                            if (novel.status == Novel.STATUS_DRAFT) Icons.Default.CheckCircle
-                            else Icons.Default.Unpublished,
-                            contentDescription = null
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            if (novel.status == Novel.STATUS_DRAFT) "标记为完成"
-                            else "变回草稿"
-                        )
+                        viewModel.exportNovel(novel)
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.FileDownload, contentDescription = null)
+                        Spacer(Modifier.width(8.dp)); Text("导出")
                     }
                     TextButton(onClick = {
                         viewModel.deleteNovel(novel)
                         menuNovel = null
-                    }) {
+                    }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                        Spacer(Modifier.width(8.dp))
-                        Text("删除", color = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.width(8.dp)); Text("删除", color = MaterialTheme.colorScheme.error)
                     }
                 }
             },

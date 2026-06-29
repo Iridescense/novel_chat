@@ -91,6 +91,18 @@ class BookshelfViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    fun exportNovel(novel: Novel) {
+        viewModelScope.launch {
+            val app = getApplication<NovelChatApp>()
+            val json = com.novelchat.util.JsonExporter.exportNovelToString(repository, novel.id)
+            val fileName = "${novel.title}.json".replace(" ", "_")
+            val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
+                android.os.Environment.DIRECTORY_DOWNLOADS)
+            val file = java.io.File(downloadsDir, fileName)
+            file.writeText(json)
+        }
+    }
+
     fun toggleNovelStatus(novel: Novel) {
         viewModelScope.launch {
             val newStatus = if (novel.status == Novel.STATUS_DRAFT) {

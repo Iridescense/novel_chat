@@ -98,36 +98,39 @@ fun MessageBubble(
         val avatar = RoleAvatar(role, Modifier.size(44.dp))
 
         Column(modifier = modifier.padding(horizontal = 8.dp, vertical = 3.dp)) {
-            // 第一行：头像 + 名字（在气泡上方）
+            // 第一行：名字（单独一行，在上方）
+            if (role != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = if (isRight) Arrangement.End else Arrangement.Start
+                ) {
+                    if (isRight) {
+                        Text(role.name,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = try { Color(android.graphics.Color.parseColor(role.color)) }
+                                    catch (_: Exception) { MaterialTheme.colorScheme.outline })
+                    } else {
+                        Text(role.name,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = try { Color(android.graphics.Color.parseColor(role.color)) }
+                                    catch (_: Exception) { MaterialTheme.colorScheme.outline })
+                    }
+                }
+            }
+
+            // 第二行：头像 + 气泡（头像在气泡旁边居中）
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = if (isRight) Arrangement.End else Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (!isRight) {
-                    avatar; Spacer(Modifier.width(6.dp))
-                    if (role != null) Text(role.name,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = try { Color(android.graphics.Color.parseColor(role.color)) }
-                                catch (_: Exception) { MaterialTheme.colorScheme.outline })
-                }
-                if (isRight) {
-                    if (role != null) Text(role.name,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = try { Color(android.graphics.Color.parseColor(role.color)) }
-                                catch (_: Exception) { MaterialTheme.colorScheme.outline })
-                    Spacer(Modifier.width(6.dp))
                     avatar
+                    Spacer(Modifier.width(12.dp))
                 }
-            }
 
-            // 第二行：气泡
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = if (isRight) Arrangement.End else Arrangement.Start
-            ) {
                 Surface(
                     shape = RoundedCornerShape(
                         topStart = if (isRight) 16.dp else 4.dp,
@@ -150,8 +153,14 @@ fun MessageBubble(
                         TextWithDot(text = message.text,
                             showDot = message.hasHiddenNote && !showHiddenNote,
                             style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-                            color = textColor)
+                            color = textColor,
+                            textAlign = if (isRight) TextAlign.End else TextAlign.Start)
                     }
+                }
+
+                if (isRight) {
+                    Spacer(Modifier.width(12.dp))
+                    avatar
                 }
             }
 

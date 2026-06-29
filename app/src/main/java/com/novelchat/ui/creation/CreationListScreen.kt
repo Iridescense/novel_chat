@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -112,17 +113,21 @@ fun CreationListScreen(
 
     // 长按菜单对话框
     menuNovel?.let { novel ->
+        var renameText by remember { mutableStateOf(novel.title) }
         AlertDialog(
             onDismissRequest = { menuNovel = null },
             title = { Text(novel.title) },
             text = {
                 Column {
+                    OutlinedTextField(value = renameText, onValueChange = { renameText = it },
+                        label = { Text("剧本名") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
                     TextButton(onClick = {
-                        viewModel.showEditNovelDialog(novel)
                         menuNovel = null
+                        viewModel.exportNovel(novel)
                     }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Edit, contentDescription = null)
-                        Spacer(Modifier.width(8.dp)); Text("重命名")
+                        Icon(Icons.Default.FileDownload, contentDescription = null)
+                        Spacer(Modifier.width(8.dp)); Text("导出")
                     }
                     TextButton(onClick = {
                         viewModel.deleteNovel(novel)
@@ -133,7 +138,13 @@ fun CreationListScreen(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { menuNovel = null }) { Text("关闭") } }
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.updateNovel(novel.id, renameText.trim(), novel.description, novel.coverColor)
+                    menuNovel = null
+                }) { Text("保存") }
+            },
+            dismissButton = { TextButton(onClick = { menuNovel = null }) { Text("取消") } }
         )
     }
 }
