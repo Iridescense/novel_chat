@@ -360,33 +360,53 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
         val insertAfter = _insertAfterId.value
 
         if (insertAfter != null) {
+            // 优先在当前节查找目标消息
             val targetIdx = currentMsgs.indexOfFirst { it.id == insertAfter }
             if (targetIdx >= 0) {
                 val targetMsg = currentMsgs[targetIdx]
-                // 插入到目标消息后面
                 val newMsg = Message(
-                    id = nextLocalMsgId(),
-                    segmentId = segment.id,
-                    type = type,
-                    roleId = roleId,
-                    text = text,
-                    richTextJson = richTextJson,
+                    id = nextLocalMsgId(), segmentId = segment.id, type = type,
+                    roleId = roleId, text = text, richTextJson = richTextJson,
                     orderIndex = targetMsg.orderIndex + 1
                 )
-                // 后面消息的 orderIndex +1
                 for (i in targetIdx + 1 until currentMsgs.size) {
                     currentMsgs[i] = currentMsgs[i].copy(orderIndex = currentMsgs[i].orderIndex + 1)
                 }
                 currentMsgs.add(targetIdx + 1, newMsg)
+                _messages.value = currentMsgs
             } else {
-                // 没找到目标，追加到末尾
-                currentMsgs.add(
-                    Message(
-                        id = nextLocalMsgId(), segmentId = segment.id, type = type,
-                        roleId = roleId, text = text, richTextJson = richTextJson,
-                        orderIndex = currentMsgs.size
+                // 不在当前节 → 搜索所有节的缓冲区
+                var inserted = false
+                for ((bufSegId, bufMsgs) in segmentMessageBuffer) {
+                    val bufIdx = bufMsgs.indexOfFirst { it.id == insertAfter }
+                    if (bufIdx >= 0) {
+                        val targetMsg = bufMsgs[bufIdx]
+                        val newMsg = Message(
+                            id = nextLocalMsgId(), segmentId = bufSegId, type = type,
+                            roleId = roleId, text = text, richTextJson = richTextJson,
+                            orderIndex = targetMsg.orderIndex + 1
+                        )
+                        val updatedBuf = bufMsgs.toMutableList()
+                        for (i in bufIdx + 1 until updatedBuf.size) {
+                            updatedBuf[i] = updatedBuf[i].copy(orderIndex = updatedBuf[i].orderIndex + 1)
+                        }
+                        updatedBuf.add(bufIdx + 1, newMsg)
+                        segmentMessageBuffer[bufSegId] = updatedBuf
+                        inserted = true
+                        break
+                    }
+                }
+                if (!inserted) {
+                    // 都没找到，追加到当前节末尾
+                    currentMsgs.add(
+                        Message(
+                            id = nextLocalMsgId(), segmentId = segment.id, type = type,
+                            roleId = roleId, text = text, richTextJson = richTextJson,
+                            orderIndex = currentMsgs.size
+                        )
                     )
-                )
+                    _messages.value = currentMsgs
+                }
             }
         } else {
             currentMsgs.add(
@@ -396,9 +416,9 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
                     orderIndex = currentMsgs.size
                 )
             )
+            _messages.value = currentMsgs
         }
 
-        _messages.value = currentMsgs
         refreshAllMessages()
         _insertAfterId.value = null
         markChanged()
