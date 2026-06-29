@@ -50,9 +50,22 @@ fun BookshelfScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    // 导出文件选择器
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        uri?.let {
+            menuNovel?.let { novel ->
+                scope.launch {
+                    viewModel.exportNovelToUri(novel, it)
+                }
+            }
+        }
+    }
+
     // 导入文件选择器
     val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         uri?.let {
             scope.launch {
@@ -78,7 +91,7 @@ fun BookshelfScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { importLauncher.launch("application/json") },
+                onClick = { importLauncher.launch(arrayOf("*/*")) },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(Icons.Default.FileOpen, contentDescription = "导入剧本")
@@ -203,8 +216,7 @@ fun BookshelfScreen(
                         Spacer(Modifier.width(8.dp)); Text("编辑到创作台")
                     }
                     TextButton(onClick = {
-                        menuNovel = null
-                        viewModel.exportNovel(novel)
+                        exportLauncher.launch("${novel.title}.json")
                     }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.FileDownload, contentDescription = null)
                         Spacer(Modifier.width(8.dp)); Text("导出")
