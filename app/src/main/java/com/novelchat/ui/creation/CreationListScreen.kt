@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -52,7 +54,7 @@ fun CreationListScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        Icons.Default.EditNote,
+                        Icons.Default.Create,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.outline
@@ -92,7 +94,6 @@ fun CreationListScreen(
         }
     }
 
-    // 新建剧本对话框
     if (showNewDialog) {
         NovelCreateDialog(
             onConfirm = { title, description ->
@@ -164,7 +165,6 @@ private fun NovelListItem(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 状态标签
             val statusColor = if (novel.status == Novel.STATUS_COMPLETED) {
                 MaterialTheme.colorScheme.primary
             } else {
@@ -186,7 +186,6 @@ private fun NovelListItem(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // 剧本名
             Text(
                 text = novel.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -197,7 +196,6 @@ private fun NovelListItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // 箭头
             Icon(
                 Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
