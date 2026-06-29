@@ -17,10 +17,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.novelchat.NovelChatApp
 import com.novelchat.data.model.Novel
+import com.novelchat.util.AppModule
+import com.novelchat.util.JsonExporter
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -37,6 +45,26 @@ fun BookshelfScreen(
     // 长按菜单状态
     var menuNovel by remember { mutableStateOf<Novel?>(null) }
 
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    // 导入文件选择器
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            scope.launch {
+                val app = context.applicationContext as NovelChatApp
+                val repo = AppModule.getRepository(app)
+                try {
+                    JsonExporter.importNovelFromUri(context, repo, it)
+                } catch (_: Exception) {
+                    // 导入失败忽略
+                }
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -48,10 +76,10 @@ fun BookshelfScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { viewModel.showNewNovelDialog() },
+                onClick = { importLauncher.launch("application/json") },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "新建剧本")
+                Icon(Icons.Default.FileOpen, contentDescription = "导入剧本")
             }
         }
     ) { padding ->
