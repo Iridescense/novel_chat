@@ -46,6 +46,7 @@ fun CreationEditorScreen(
     val segments by viewModel.segments.collectAsState()
     val currentSegment by viewModel.currentSegment.collectAsState()
     val roles by viewModel.roles.collectAsState()
+    val allChapterMessages by viewModel.allChapterMessages.collectAsState()
     val messages by viewModel.messages.collectAsState()
     val currentProtagonist by viewModel.currentProtagonist.collectAsState()
     val hasUnsavedChanges by viewModel.hasUnsavedChanges.collectAsState()
@@ -53,6 +54,7 @@ fun CreationEditorScreen(
     val editingHiddenNote by viewModel.editingHiddenNote.collectAsState()
     val inputSenderType by viewModel.inputSenderType.collectAsState()
     val selectedOtherRoleId by viewModel.selectedOtherRoleId.collectAsState()
+    val insertAfterId by viewModel.insertAfterId.collectAsState()
 
     var showExitDialog by remember { mutableStateOf(false) }
     var actionMessage by remember { mutableStateOf<Message?>(null) }
@@ -145,6 +147,20 @@ fun CreationEditorScreen(
                 Column(modifier = Modifier.fillMaxSize()) {
                     val listState = rememberLazyListState()
 
+                    // 构建带分割线的显示列表
+                    val displayItems = remember(allChapterMessages) {
+                        val items = mutableListOf<Pair<Segment?, Message?>>()
+                        var lastSegId = -1L
+                        for ((seg, msg) in allChapterMessages) {
+                            if (seg.id != lastSegId) {
+                                items.add(seg to null) // 分割线标记
+                                lastSegId = seg.id
+                            }
+                            items.add(null to msg)
+                        }
+                        items
+                    }
+
                     LazyColumn(
                         state = listState,
                         modifier = Modifier
@@ -153,32 +169,60 @@ fun CreationEditorScreen(
                             .then(swipeModifier),
                         contentPadding = PaddingValues(vertical = 8.dp)
                     ) {
-                        if (currentSegment != null && currentSegment!!.title.isNotBlank()) {
-                            item {
+                        itemsIndexed(displayItems, key = { _, item ->
+                            when {
+                                item.first != null -> "seg_${item.first!!.id}"
+                                item.second != null -> "msg_${item.second!!.id}"
+                                else -> "empty"
+                            }
+                        }) { _, item ->
+                            val seg = item.first
+                            val msg = item.second
+                            if (seg != null) {
                                 SegmentDivider(
-                                    title = currentSegment!!.title,
+                                    title = seg.title.ifBlank { "节${segments.indexOf(seg) + 1}" },
                                     onTitleChange = { newTitle ->
-                                        currentSegment?.let {
-                                            viewModel.updateSegmentTitle(it, newTitle)
-                                        }
+                                        viewModel.updateSegmentTitle(seg, newTitle)
+                                    }
+                                )
+                            } else if (msg != null) {
+                                val role = msg.roleId?.let { id -> roles.find { it.id == id } }
+                                val isPro = currentProtagonist?.let { it.id == msg.roleId } == true
+                                MessageBubble(
+                                    message = msg,
+                                    role = role,
+                                    isProtagonist = isPro,
+                                    onDoubleTap = {
+                                        actionMessage = msg
                                     }
                                 )
                             }
                         }
-
-                        itemsIndexed(messages, key = { _, msg -> msg.id }) { index, message ->
-                            val role = message.roleId?.let { id -> roles.find { it.id == id } }
-                            val isProtagonist = currentProtagonist?.let { it.id == message.roleId } == true
-
-                            MessageBubble(
-                                message = message,
-                                role = role,
-                                isProtagonist = isProtagonist,
-                                onDoubleTap = { actionMessage = message }
-                            )
-                        }
                     }
 
+                    if (insertAfterId != null) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.primaryContainer
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = MaterialTheme.colorScheme.primary)
+                                Spacer(Modifier.width(6.dp))
+                                Text("插入模式：添加在指定位置下方",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary)
+                                Spacer(Modifier.weight(1f))
+                                TextButton(onClick = { viewModel.clearInsertAfter() }) {
+                                    Text("取消", style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+                        }
+                    }
                     BottomInputBar(
                         senderType = inputSenderType,
                         protagonistName = currentProtagonist?.name ?: "未设置",
@@ -290,6 +334,7 @@ fun CreationEditorScreen(
     }
 
     actionMessage?.let { msg ->
+        val isLast = allChapterMessages.lastOrNull()?.second?.id == msg.id
         AlertDialog(
             onDismissRequest = { actionMessage = null },
             title = { Text("消息操作") },
@@ -302,6 +347,13 @@ fun CreationEditorScreen(
                         modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.Edit, contentDescription = null)
                         Spacer(Modifier.width(8.dp)); Text("编辑消息")
+                    }
+                    TextButton(onClick = {
+                        viewModel.setInsertAfterId(msg.id)
+                        actionMessage = null
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(Modifier.width(8.dp)); Text(if (isLast) "恢复到底部添加" else "添加消息（该条下方）")
                     }
                     TextButton(onClick = { viewModel.startEditingHiddenNote(msg); actionMessage = null },
                         modifier = Modifier.fillMaxWidth()) {

@@ -111,21 +111,51 @@ fun ReaderScreen(
                         },
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
-                    // 最新添加的消息有入场动画
-                    itemsIndexed(items.take(displayCount), key = { index, _ -> index }) { index, item ->
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = slideInVertically { it }
-                        ) {
-                            MessageBubble(
-                                message = item.message,
-                                role = item.role,
-                                isProtagonist = item.isProtagonist,
-                                onDoubleTap = {
-                                    if (item.message.hasHiddenNote)
-                                        viewModel.toggleHiddenNote(item.message.id)
+                    // 带节分割线的消息列表
+                    val displayItems = remember(items, displayCount) {
+                        val list = mutableListOf<Any>() // String = divider, ReaderItem = message
+                        var lastSegId = -1L
+                        items.take(displayCount).forEach { item ->
+                            if (item.segmentId != lastSegId) {
+                                list.add("divider_${item.segmentId}")
+                                lastSegId = item.segmentId
+                            }
+                            list.add(item)
+                        }
+                        list
+                    }
+                    itemsIndexed(displayItems, key = { _, item ->
+                        when (item) {
+                            is String -> item
+                            is ReaderItem -> "msg_${item.message.id}"
+                            else -> "unknown"
+                        }
+                    }) { _, item ->
+                        when (item) {
+                            is String -> {
+                                // 分割线
+                                Box(Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 8.dp)) {
+                                    HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                    )
                                 }
-                            )
+                            }
+                            is ReaderItem -> {
+                                AnimatedVisibility(
+                                    visible = true,
+                                    enter = slideInVertically { it }
+                                ) {
+                                    MessageBubble(
+                                        message = item.message,
+                                        role = item.role,
+                                        isProtagonist = item.isProtagonist,
+                                        onDoubleTap = {
+                                            if (item.message.hasHiddenNote)
+                                                viewModel.toggleHiddenNote(item.message.id)
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }

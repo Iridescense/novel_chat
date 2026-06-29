@@ -19,6 +19,7 @@ data class ReaderItem(
     val role: Role?,
     val isProtagonist: Boolean,
     val chapterTitle: String,
+    val segmentId: Long,
     val segmentTitle: String
 )
 
@@ -101,6 +102,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                                 role = role,
                                 isProtagonist = isPro,
                                 chapterTitle = chapter.title,
+                                segmentId = segment.id,
                                 segmentTitle = segment.title.ifBlank { "" }
                             )
                         )

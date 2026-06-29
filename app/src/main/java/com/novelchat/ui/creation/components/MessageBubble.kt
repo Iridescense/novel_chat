@@ -67,7 +67,10 @@ fun MessageBubble(
                         }
                     )
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                ) {
                     TextWithDot(
                         text = message.text,
                         showDot = message.hasHiddenNote && !showHiddenNote,
@@ -105,7 +108,7 @@ fun MessageBubble(
         ) {
             if (!isRight) {
                 avatar
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(12.dp))
             }
 
             Column(
@@ -203,9 +206,7 @@ private fun TextWithDot(
             style = style,
             color = color,
             textAlign = textAlign,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp)
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }

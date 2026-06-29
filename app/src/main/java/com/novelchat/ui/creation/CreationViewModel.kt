@@ -53,6 +53,14 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages.asStateFlow()
 
+    // 全部消息（跨所有节，含分段信息）
+    private val _allChapterMessages = MutableStateFlow<List<Pair<Segment, Message>>>(emptyList())
+    val allChapterMessages: StateFlow<List<Pair<Segment, Message>>> = _allChapterMessages.asStateFlow()
+
+    // 插入消息到指定消息之后
+    private val _insertAfterId = MutableStateFlow<Long?>(null)
+    val insertAfterId: StateFlow<Long?> = _insertAfterId.asStateFlow()
+
     // 当前节的主角
     val currentProtagonist: StateFlow<Role?> = combine(
         currentSegment, _roles
@@ -138,7 +146,16 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
             }
         }
 
-        // 监听当前节变化 → 加载消息
+        // 监听当前章节变化 → 加载所有节的消息
+        viewModelScope.launch {
+            currentChapter.collect { chapter ->
+                if (chapter != null) {
+                    loadAllChapterMessages(chapter.id)
+                }
+            }
+        }
+
+        // 监听当前节变化 → 加载当前节消息
         viewModelScope.launch {
             currentSegment.collect { segment ->
                 if (segment != null) {
@@ -148,6 +165,18 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
                 }
             }
         }
+    }
+
+    private suspend fun loadAllChapterMessages(chapterId: Long) {
+        val segList = repository.getSegmentsByChapterIdSync(chapterId)
+        val all = mutableListOf<Pair<Segment, Message>>()
+        for (seg in segList) {
+            val msgs = repository.getMessagesBySegmentIdSync(seg.id)
+            for (msg in msgs) {
+                all.add(seg to msg)
+            }
+        }
+        _allChapterMessages.value = all
     }
 
     // ========== 章节操作 ==========
@@ -271,8 +300,6 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
         val segment = currentSegment.value ?: return
         val senderType = _inputSenderType.value
         viewModelScope.launch {
-            val order = _messages.value.size
-
             val type: String
             val roleId: Long?
 
@@ -291,18 +318,52 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
                 }
             }
 
-            repository.insertMessage(
-                Message(
-                    segmentId = segment.id,
-                    type = type,
-                    roleId = roleId,
-                    text = text,
-                    richTextJson = richTextJson,
-                    orderIndex = order
+            val insertAfter = _insertAfterId.value
+            if (insertAfter != null) {
+                // 插入到指定消息后面
+                val targetMsg = repository.getMessageById(insertAfter)
+                if (targetMsg != null && targetMsg.segmentId == segment.id) {
+                    // 把目标消息之后的消息 orderIndex +1
+                    val laterMsgs = repository.getMessagesBySegmentIdSync(segment.id)
+                        .filter { it.orderIndex > targetMsg.orderIndex }
+                    laterMsgs.forEach {
+                        repository.updateMessage(it.copy(orderIndex = it.orderIndex + 1))
+                    }
+                    repository.insertMessage(
+                        Message(
+                            segmentId = segment.id,
+                            type = type,
+                            roleId = roleId,
+                            text = text,
+                            richTextJson = richTextJson,
+                            orderIndex = targetMsg.orderIndex + 1
+                        )
+                    )
+                } else {
+                    // 插入到末尾
+                    val order = _messages.value.size
+                    repository.insertMessage(
+                        Message(segmentId = segment.id, type = type, roleId = roleId,
+                            text = text, richTextJson = richTextJson, orderIndex = order)
+                    )
+                }
+            } else {
+                val order = _messages.value.size
+                repository.insertMessage(
+                    Message(segmentId = segment.id, type = type, roleId = roleId,
+                        text = text, richTextJson = richTextJson, orderIndex = order)
                 )
-            )
+            }
             markChanged()
         }
+    }
+
+    fun setInsertAfterId(messageId: Long?) {
+        _insertAfterId.value = messageId
+    }
+
+    fun clearInsertAfter() {
+        _insertAfterId.value = null
     }
 
     fun updateMessage(message: Message) {
