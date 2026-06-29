@@ -1,6 +1,7 @@
 package com.novelchat.ui.creation.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.novelchat.data.model.Role
 import com.novelchat.data.model.Segment
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SlideMenu(
     segments: List<Segment>,
@@ -32,11 +33,13 @@ fun SlideMenu(
     onDeleteRole: (Role) -> Unit,
     onSave: () -> Unit,
     onToggleStatus: () -> Unit,
+    onDeleteSegment: (Segment) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
     var isAddingRole by remember { mutableStateOf(false) }
+    var deleteSegmentTarget by remember { mutableStateOf<Segment?>(null) }
 
     Surface(
         modifier = modifier
@@ -119,9 +122,10 @@ fun SlideMenu(
                                        else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
                             )
                         },
-                        modifier = Modifier.clickable {
-                            onSwitchSegment(segIndex)
-                        }
+                        modifier = Modifier.combinedClickable(
+                            onClick = { onSwitchSegment(segIndex) },
+                            onLongClick = { deleteSegmentTarget = segment }
+                        )
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 }
@@ -167,6 +171,24 @@ fun SlideMenu(
                 }
             }
         }
+    }
+
+    // 删除节确认对话框
+    deleteSegmentTarget?.let { seg ->
+        AlertDialog(
+            onDismissRequest = { deleteSegmentTarget = null },
+            title = { Text("删除节") },
+            text = { Text("确定要删除「${seg.title.ifBlank { "节${segments.indexOf(seg) + 1}" }}」吗？") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeleteSegment(seg)
+                    deleteSegmentTarget = null
+                }) { Text("删除", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteSegmentTarget = null }) { Text("取消") }
+            }
+        )
     }
 
     if (showAddDialog) {

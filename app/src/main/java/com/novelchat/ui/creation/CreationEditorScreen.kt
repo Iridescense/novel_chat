@@ -272,6 +272,7 @@ fun CreationEditorScreen(
                         viewModel.addRole(name, color, avatarType, avatarValue)
                     },
                     onDeleteRole = { viewModel.deleteRole(it) },
+                    onDeleteSegment = { viewModel.deleteSegment(it) },
                     onSave = {
                         viewModel.save()
                         scope.launch { snackbarHostState.showSnackbar("已保存 ✓") }
@@ -291,14 +292,16 @@ fun CreationEditorScreen(
             text = { Text("当前有未保存的修改，是否保存？") },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.save()
-                    showExitDialog = false
-                    onBack()
+                    viewModel.save {
+                        showExitDialog = false
+                        onBack()
+                    }
                 }) { Text("保存") }
             },
             dismissButton = {
                 Row {
                     TextButton(onClick = {
+                        viewModel.discardChanges()
                         showExitDialog = false
                         onBack()
                     }) { Text("不保存") }

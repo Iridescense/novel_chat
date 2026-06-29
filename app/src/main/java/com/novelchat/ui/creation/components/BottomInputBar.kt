@@ -44,16 +44,23 @@ fun BottomInputBar(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 按钮1：主角
+                // 按钮1：主角 — 选定主角后按钮置灰不可点击
+                val protagonistSet = protagonistName != "未设置"
                 Button(
                     onClick = {
                         onSenderTypeChange(SenderType.PROTAGONIST)
-                        showProtagonistDialog = true
+                        if (!protagonistSet) {
+                            showProtagonistDialog = true
+                        }
                     },
+                    enabled = !protagonistSet,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (senderType == SenderType.PROTAGONIST)
                             MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surfaceVariant
+                        else MaterialTheme.colorScheme.surfaceVariant,
+                        disabledContainerColor = if (senderType == SenderType.PROTAGONIST)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     ),
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                     modifier = Modifier.height(32.dp)

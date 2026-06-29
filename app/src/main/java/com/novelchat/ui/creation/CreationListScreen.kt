@@ -11,9 +11,6 @@ import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -116,13 +113,6 @@ fun CreationListScreen(
     menuNovel?.let { novel ->
         var renameText by remember { mutableStateOf(novel.title) }
         var descText by remember { mutableStateOf(novel.description) }
-        var hasCopy by remember { mutableStateOf(false) }
-        val scope = rememberCoroutineScope()
-
-        // 检查是否已有书架副本
-        LaunchedEffect(novel.id) {
-            hasCopy = viewModel.hasBookshelfCopy(novel.id)
-        }
 
         AlertDialog(
             onDismissRequest = { menuNovel = null },
@@ -135,20 +125,6 @@ fun CreationListScreen(
                     OutlinedTextField(value = descText, onValueChange = { descText = it },
                         label = { Text("简介") }, maxLines = 3, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
-                    TextButton(onClick = {
-                        menuNovel = null
-                        if (hasCopy) {
-                            viewModel.updateBookshelfCopy(novel.id)
-                        } else {
-                            viewModel.addToBookshelf(novel.id)
-                        }
-                    }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = null
-                        )
-                        Spacer(Modifier.width(8.dp)); Text(if (hasCopy) "更新至书架" else "添加至书架")
-                    }
                     TextButton(onClick = {
                         viewModel.deleteNovel(novel)
                         menuNovel = null
