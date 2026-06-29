@@ -190,11 +190,11 @@ fun SlideMenu(
                                 },
                                 leadingContent = {
                                     Icon(
-                                        if (isSegCurrent) Icons.Default.Circle else Icons.Default.RadioButtonUnchecked,
+                                        if (isSegCurrent) Icons.Default.Circle else Icons.Default.Circle,
                                         contentDescription = null,
-                                        modifier = Modifier.size(12.dp),
+                                        modifier = Modifier.size(if (isSegCurrent) 12.dp else 8.dp),
                                         tint = if (isSegCurrent) MaterialTheme.colorScheme.primary
-                                               else MaterialTheme.colorScheme.outline
+                                               else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
                                     )
                                 },
                                 modifier = Modifier.clickable { onSwitchSegment(segIndex) }
