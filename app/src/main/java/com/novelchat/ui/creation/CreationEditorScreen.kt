@@ -1,6 +1,6 @@
 package com.novelchat.ui.creation
 
-import android.app.Activity 
+import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
@@ -55,6 +55,7 @@ fun CreationEditorScreen(
 
     var showExitDialog by remember { mutableStateOf(false) }
     var actionMessage by remember { mutableStateOf<Message?>(null) }
+    var editingMessage by remember { mutableStateOf<Message?>(null) }
 
     BackHandler {
         if (hasUnsavedChanges) {
@@ -175,9 +176,13 @@ fun CreationEditorScreen(
                     senderType = inputSenderType,
                     protagonistName = currentProtagonist?.name ?: "未设置",
                     otherRoles = roles.filter { it.id != currentProtagonist?.id },
+                    allRoles = roles,
                     selectedOtherRoleId = selectedOtherRoleId,
                     onSenderTypeChange = { viewModel.setInputSenderType(it) },
                     onSelectedOtherRoleChange = { viewModel.setSelectedOtherRoleId(it) },
+                    onSetProtagonist = { roleId ->
+                        currentSegment?.let { viewModel.setSegmentProtagonist(it, roleId) }
+                    },
                     onSend = { text -> viewModel.sendMessage(text) }
                 )
             }
@@ -290,6 +295,17 @@ fun CreationEditorScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     TextButton(
                         onClick = {
+                            editingMessage = msg
+                            actionMessage = null
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("编辑消息")
+                    }
+                    TextButton(
+                        onClick = {
                             viewModel.startEditingHiddenNote(msg)
                             actionMessage = null
                         },
@@ -297,7 +313,7 @@ fun CreationEditorScreen(
                     ) {
                         Icon(Icons.Default.NoteAdd, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("编辑隐藏附注")
+                        Text("编辑隐藏标注")
                     }
                     TextButton(
                         onClick = {
@@ -308,12 +324,37 @@ fun CreationEditorScreen(
                     ) {
                         Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                         Spacer(Modifier.width(8.dp))
-                        Text("删除消息", color = MaterialTheme.colorScheme.error)
+                        Text("删除该消息", color = MaterialTheme.colorScheme.error)
                     }
                 }
             },
             confirmButton = {
                 TextButton(onClick = { actionMessage = null }) { Text("关闭") }
+            }
+        )
+    }
+
+    editingMessage?.let { msg ->
+        var editText by remember { mutableStateOf(msg.text) }
+        AlertDialog(
+            onDismissRequest = { editingMessage = null },
+            title = { Text("编辑消息") },
+            text = {
+                OutlinedTextField(
+                    value = editText,
+                    onValueChange = { editText = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 5
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.updateMessage(msg.copy(text = editText.trim()))
+                    editingMessage = null
+                }) { Text("保存") }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingMessage = null }) { Text("取消") }
             }
         )
     }
