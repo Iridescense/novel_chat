@@ -52,7 +52,7 @@ fun CreationListScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        Icons.Default.Edit,
+                        Icons.Default.Create,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.outline
@@ -152,7 +152,7 @@ private fun NovelListItem(
 
             // 箭头
             Icon(
-                Icons.Default.ArrowForward,
+                Icons.Default.NavigateNext,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.outline
             )
