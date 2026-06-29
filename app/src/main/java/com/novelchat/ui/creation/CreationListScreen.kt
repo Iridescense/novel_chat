@@ -6,8 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -54,7 +52,7 @@ fun CreationListScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        Icons.Default.Create,
+                        Icons.Default.EditNote,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.outline
@@ -94,11 +92,58 @@ fun CreationListScreen(
         }
     }
 
-    // 新建对话框复用书架的逻辑
+    // 新建剧本对话框
     if (showNewDialog) {
-        // 对话框的 UI 在 BookshelfScreen 中已定义，
-        // 此处用简单方式触发
+        NovelCreateDialog(
+            onConfirm = { title, description ->
+                viewModel.createNovel(title, description)
+                viewModel.hideNewNovelDialog()
+            },
+            onDismiss = { viewModel.hideNewNovelDialog() }
+        )
     }
+}
+
+@Composable
+private fun NovelCreateDialog(
+    onConfirm: (title: String, desc: String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var desc by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("新建剧本") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("标题") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = desc,
+                    onValueChange = { desc = it },
+                    label = { Text("简介") },
+                    maxLines = 3,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { if (title.isNotBlank()) onConfirm(title.trim(), desc.trim()) },
+                enabled = title.isNotBlank()
+            ) { Text("确认") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("取消") }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
