@@ -1,0 +1,281 @@
+package com.novelchat.ui.creation.components
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.novelchat.data.model.Message
+import com.novelchat.data.model.Role
+import com.novelchat.ui.theme.HiddenNoteDot
+import com.novelchat.ui.theme.NarratorBg
+import com.novelchat.ui.theme.NarratorText
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MessageBubble(
+    message: Message,
+    role: Role?,
+    isProtagonist: Boolean,
+    onDoubleTap: () -> Unit = {},
+    onLongClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    val isNarrator = message.type == Message.TYPE_NARRATOR
+    var showHiddenNote by remember { mutableStateOf(false) }
+
+    if (isNarrator) {
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp, horizontal = 32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = NarratorBg,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onDoubleTap = { onDoubleTap() },
+                            onLongPress = {
+                                if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
+                            }
+                        )
+                    }
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = message.text,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = NarratorText,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                    )
+                    if (message.hasHiddenNote) {
+                        HiddenNoteDotIndicator(showHiddenNote, message.hiddenNote)
+                    }
+                }
+            }
+        }
+    } else {
+        val isRight = isProtagonist
+        val bubbleColor = if (isRight) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        }
+        val textColor = if (isRight) {
+            MaterialTheme.colorScheme.onPrimary
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        }
+
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 3.dp),
+            horizontalArrangement = if (isRight) Arrangement.End else Arrangement.Start,
+            verticalAlignment = Alignment.Top
+        ) {
+            if (!isRight) {
+                // 他人头像 — 左侧，与消息框顶部对齐
+                RoleAvatar(role, Modifier.size(44.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+
+            // 消息内容区域（含角色名、气泡、隐藏附注）
+            Box {
+                Column(
+                    horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
+                    modifier = Modifier.widthIn(max = 280.dp)
+                ) {
+                    // 角色名（仅非主角显示）
+                    if (!isRight && role != null) {
+                        Text(
+                            text = role.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = try {
+                                Color(android.graphics.Color.parseColor(role.color))
+                            } catch (_: Exception) {
+                                MaterialTheme.colorScheme.outline
+                            },
+                            modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
+                        )
+                    }
+
+                    // 消息气泡
+                    Surface(
+                        shape = RoundedCornerShape(
+                            topStart = if (isRight) 16.dp else 4.dp,
+                            topEnd = if (isRight) 4.dp else 16.dp,
+                            bottomStart = 16.dp,
+                            bottomEnd = 16.dp
+                        ),
+                        color = bubbleColor,
+                        modifier = Modifier.pointerInput(Unit) {
+                            detectTapGestures(
+                                onDoubleTap = { onDoubleTap() },
+                                onLongPress = {
+                                    if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
+                                }
+                            )
+                        }
+                    ) {
+                        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                            Text(
+                                text = message.text,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontSize = 16.sp
+                                ),
+                                color = textColor
+                            )
+                        }
+                    }
+
+                    // 隐藏附注（展开时显示在气泡下方）
+                    if (message.hasHiddenNote && showHiddenNote) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
+                        ) {
+                            Text(
+                                text = message.hiddenNote ?: "",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
+                }
+
+                // 隐藏附注小圆点：放在气泡右上角（主角）/ 左上角（他人）
+                // 与气泡重叠约一半
+                if (message.hasHiddenNote && !showHiddenNote) {
+                    Box(
+                        modifier = Modifier
+                            .align(if (isRight) Alignment.TopEnd else Alignment.TopStart)
+                            .offset(
+                                x = if (isRight) 0.dp else (-6).dp,
+                                y = 0.dp
+                            )
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(16.dp),
+                            shape = RoundedCornerShape(50),
+                            color = HiddenNoteDot
+                        ) {}
+                    }
+                }
+            }
+
+            if (isRight) {
+                Spacer(modifier = Modifier.width(6.dp))
+                // 主角头像 — 右侧，与消息框顶部对齐
+                RoleAvatar(role, Modifier.size(44.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun HiddenNoteDotIndicator(
+    expanded: Boolean,
+    noteText: String?
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (!expanded) {
+            Text(
+                text = "●",
+                color = HiddenNoteDot,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+        AnimatedVisibility(
+            visible = expanded,
+            enter = slideInVertically { it }
+        ) {
+            Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
+                modifier = Modifier.padding(top = 4.dp)
+            ) {
+                Text(
+                    text = noteText ?: "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RoleAvatar(
+    role: Role?,
+    modifier: Modifier = Modifier
+) {
+    if (role == null) {
+        Surface(
+            modifier = modifier,
+            shape = RoundedCornerShape(50),
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+        ) {}
+        return
+    }
+
+    val bgColor = try {
+        Color(android.graphics.Color.parseColor(role.color))
+    } catch (_: Exception) {
+        MaterialTheme.colorScheme.primary
+    }
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(50),
+        color = bgColor
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = if (role.avatarType == Role.AVATAR_TEXT && role.avatarValue.isNotBlank()) {
+                    role.avatarValue.take(2)
+                } else {
+                    role.name.take(1)
+                },
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
