@@ -146,7 +146,7 @@ fun ChapterListScreen(
                         viewModel.renameChapter(chapter, renameText.trim())
                         menuChapter = null
                     }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.DriveFileRenameOutline, contentDescription = null)
+                        Icon(Icons.Default.Edit, contentDescription = null)
                         Spacer(Modifier.width(8.dp)); Text("重命名")
                     }
                     TextButton(onClick = {

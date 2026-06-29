@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -119,7 +121,7 @@ fun CreationListScreen(
                         viewModel.showEditNovelDialog(novel)
                         menuNovel = null
                     }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.DriveFileRenameOutline, contentDescription = null)
+                        Icon(Icons.Default.Edit, contentDescription = null)
                         Spacer(Modifier.width(8.dp)); Text("重命名")
                     }
                     TextButton(onClick = {
