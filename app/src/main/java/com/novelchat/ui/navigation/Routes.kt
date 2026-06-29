@@ -13,5 +13,7 @@ object Routes {
 
     fun chapterList(novelId: Long, readOnly: Boolean = false) = "chapter_list/$novelId?readOnly=$readOnly"
     fun creationEditor(novelId: Long, chapterId: Long) = "creation_editor/$novelId/$chapterId"
-    fun reader(novelId: Long, startMessageIndex: Int = 0) = "reader/$novelId/$startMessageIndex"
+    fun reader(novelId: Long, startMessageIndex: Int = 0, chapterId: Long? = null) =
+        if (chapterId != null) "reader/$novelId/$startMessageIndex?chapterId=$chapterId"
+        else "reader/$novelId/$startMessageIndex"
 }

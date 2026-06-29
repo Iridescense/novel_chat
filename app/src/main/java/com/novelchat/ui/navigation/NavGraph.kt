@@ -121,7 +121,7 @@ fun NavGraph(importPath: String? = null) {
                     onBack = { navController.popBackStack() },
                     onOpenChapter = { nid, chId, chTitle ->
                         if (readOnly) {
-                            navController.navigate(Routes.reader(nid))
+                            navController.navigate(Routes.reader(nid, chapterId = chId))
                         } else {
                             navController.navigate(Routes.creationEditor(nid, chId))
                         }
@@ -151,20 +151,24 @@ fun NavGraph(importPath: String? = null) {
 
             // 沉浸式阅读器
             composable(
-                route = "reader/{novelId}/{startMessageIndex}",
+                route = "reader/{novelId}/{startMessageIndex}?chapterId={chapterId}",
                 arguments = listOf(
                     navArgument("novelId") { type = NavType.LongType },
                     navArgument("startMessageIndex") {
-                        type = NavType.IntType
-                        defaultValue = 0
+                        type = NavType.IntType; defaultValue = 0
+                    },
+                    navArgument("chapterId") {
+                        type = NavType.LongType; defaultValue = -1L
                     }
                 )
             ) { backStackEntry ->
                 val novelId = backStackEntry.arguments?.getLong("novelId") ?: 0L
                 val startIndex = backStackEntry.arguments?.getInt("startMessageIndex") ?: 0
+                val chapterId = backStackEntry.arguments?.getLong("chapterId") ?: -1L
                 ReaderScreen(
                     novelId = novelId,
                     startMessageIndex = startIndex,
+                    chapterId = if (chapterId > 0) chapterId else null,
                     onBack = { navController.popBackStack() }
                 )
             }

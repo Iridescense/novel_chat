@@ -14,7 +14,7 @@ import com.novelchat.data.model.*
         Segment::class,
         Message::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class NovelDatabase : RoomDatabase() {

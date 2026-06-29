@@ -12,10 +12,13 @@ interface NovelDao {
     @Query("SELECT * FROM novels ORDER BY createdAt DESC")
     fun getAllNovels(): Flow<List<Novel>>
 
+    @Query("SELECT * FROM novels WHERE isInBookshelf = 1 ORDER BY createdAt DESC")
+    fun getBookshelfNovels(): Flow<List<Novel>>
+
     @Query("SELECT * FROM novels WHERE id = :id")
     suspend fun getNovelById(id: Long): Novel?
 
-    @Query("SELECT * FROM novels WHERE title LIKE '%' || :query || '%' ORDER BY createdAt DESC")
+    @Query("SELECT * FROM novels WHERE isInBookshelf = 1 AND title LIKE '%' || :query || '%' ORDER BY createdAt DESC")
     fun searchNovels(query: String): Flow<List<Novel>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

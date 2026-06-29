@@ -15,6 +15,7 @@ data class Novel(
     val coverColor: String = "#FFF8DC",
     val coverImagePath: String? = null,
     val status: String = "draft",       // "draft" | "completed"
+    val isInBookshelf: Boolean = false,  // 是否添加到书架
     val type: String = "normal",         // "normal" | "interactive" (预留)
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()

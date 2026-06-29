@@ -24,11 +24,12 @@ import kotlinx.coroutines.launch
 fun ReaderScreen(
     novelId: Long,
     startMessageIndex: Int,
+    chapterId: Long? = null,
     onBack: () -> Unit,
     viewModel: ReaderViewModel = viewModel()
 ) {
     LaunchedEffect(novelId, startMessageIndex) {
-        viewModel.loadNovel(novelId, startMessageIndex)
+        viewModel.loadNovel(novelId, startMessageIndex, chapterId)
     }
 
     val items by viewModel.items.collectAsState()

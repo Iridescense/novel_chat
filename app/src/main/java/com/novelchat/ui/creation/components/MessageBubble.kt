@@ -106,10 +106,11 @@ fun MessageBubble(
             horizontalArrangement = if (isRight) Arrangement.End else Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (!isRight) {
-                avatar
-                Spacer(Modifier.width(12.dp))
-            }
+            // 头像永远放在代码第一位：
+            // Arrangement.Start → 第一位=最左边（他人）
+            // Arrangement.End   → 第一位=最右边（主角）
+            avatar
+            Spacer(Modifier.width(12.dp))
 
             Column(
                 horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
@@ -163,11 +164,6 @@ fun MessageBubble(
                             modifier = Modifier.padding(8.dp))
                     }
                 }
-            }
-
-            if (isRight) {
-                Spacer(Modifier.width(8.dp))
-                avatar
             }
         }
     }

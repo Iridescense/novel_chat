@@ -73,7 +73,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
         _showAllMessages.value = !_showAllMessages.value
     }
 
-    fun loadNovel(novelId: Long, startIndex: Int = 0) {
+    fun loadNovel(novelId: Long, startIndex: Int = 0, chapterId: Long? = null) {
         viewModelScope.launch {
             val n = repository.getNovelById(novelId) ?: return@launch
             _novel.value = n
@@ -83,7 +83,10 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             val roleMap = roles.associateBy { it.id }
 
             // 加载所有章节
-            val chapters = repository.getChaptersByNovelIdSync(novelId)
+            var chapters = repository.getChaptersByNovelIdSync(novelId)
+            if (chapterId != null) {
+                chapters = chapters.filter { it.id == chapterId }
+            }
 
             // 构建阅读顺序列表
             val readerItems = mutableListOf<ReaderItem>()

@@ -12,6 +12,8 @@ class NovelRepository(private val dao: NovelDao) {
 
     fun searchNovels(query: String): Flow<List<Novel>> = dao.searchNovels(query)
 
+    fun getBookshelfNovels(): Flow<List<Novel>> = dao.getBookshelfNovels()
+
     suspend fun getNovelById(id: Long): Novel? = dao.getNovelById(id)
 
     suspend fun insertNovel(novel: Novel): Long = dao.insertNovel(novel)

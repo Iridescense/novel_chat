@@ -13,6 +13,9 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,7 +31,7 @@ fun CreationListScreen(
     onOpenEditor: (novelId: Long) -> Unit,
     viewModel: BookshelfViewModel = viewModel()
 ) {
-    val novels by viewModel.novels.collectAsState()
+    val novels by viewModel.allNovels.collectAsState()
     val showNewDialog by viewModel.showNewNovelDialog.collectAsState()
     var menuNovel by remember { mutableStateOf<Novel?>(null) }
 
@@ -126,6 +129,16 @@ fun CreationListScreen(
                     OutlinedTextField(value = descText, onValueChange = { descText = it },
                         label = { Text("简介") }, maxLines = 3, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
+                    TextButton(onClick = {
+                        menuNovel = null
+                        viewModel.toggleBookshelf(novel, !novel.isInBookshelf)
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(
+                            if (novel.isInBookshelf) Icons.Default.Refresh else Icons.Default.Add,
+                            contentDescription = null
+                        )
+                        Spacer(Modifier.width(8.dp)); Text(if (novel.isInBookshelf) "更新至书架" else "添加至书架")
+                    }
                     TextButton(onClick = {
                         menuNovel = null
                         viewModel.exportNovel(novel)

@@ -222,11 +222,11 @@ fun BookshelfScreen(
                         Spacer(Modifier.width(8.dp)); Text("导出")
                     }
                     TextButton(onClick = {
-                        viewModel.deleteNovel(novel)
+                        viewModel.toggleBookshelf(novel, false)
                         menuNovel = null
                     }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                        Spacer(Modifier.width(8.dp)); Text("删除", color = MaterialTheme.colorScheme.error)
+                        Icon(Icons.Default.Unpublished, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.width(8.dp)); Text("从书架移除", color = MaterialTheme.colorScheme.error)
                     }
                 }
             },

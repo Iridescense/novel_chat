@@ -167,6 +167,10 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    private suspend fun refreshAllMessages() {
+        currentChapter.value?.let { loadAllChapterMessages(it.id) }
+    }
+
     private suspend fun loadAllChapterMessages(chapterId: Long) {
         val segList = repository.getSegmentsByChapterIdSync(chapterId)
         val all = mutableListOf<Pair<Segment, Message>>()
@@ -354,6 +358,8 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
                         text = text, richTextJson = richTextJson, orderIndex = order)
                 )
             }
+            refreshAllMessages()
+            _insertAfterId.value = null // 插入后自动恢复到底部
             markChanged()
         }
     }
@@ -369,6 +375,7 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     fun updateMessage(message: Message) {
         viewModelScope.launch {
             repository.updateMessage(message)
+            refreshAllMessages()
             markChanged()
         }
     }
@@ -376,6 +383,7 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     fun deleteMessage(message: Message) {
         viewModelScope.launch {
             repository.deleteMessage(message)
+            refreshAllMessages()
             // 重新排序
             val currentMsgs = _messages.value.filter { it.id != message.id }
             currentMsgs.forEachIndexed { index, msg ->
@@ -416,6 +424,7 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
                 )
             )
             _editingHiddenNote.value = null
+            refreshAllMessages()
             markChanged()
         }
     }
