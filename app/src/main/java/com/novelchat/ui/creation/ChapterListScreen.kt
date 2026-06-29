@@ -109,7 +109,8 @@ fun ChapterListScreen(
     }
 
     if (showAddDialog) {
-        var chapterTitle by remember { mutableStateOf("第${chapters.size + 1}章") }
+        fun Int.toChineseNum(): String = listOf("零","一","二","三","四","五","六","七","八","九","十","十一","十二","十三","十四","十五")[this.coerceIn(0, 15)]
+        var chapterTitle by remember { mutableStateOf("第${(chapters.size + 1).toChineseNum()}章") }
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
             title = { Text("新建章节") },

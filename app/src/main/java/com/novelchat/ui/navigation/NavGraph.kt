@@ -113,7 +113,7 @@ fun NavGraph(importPath: String? = null) {
             ) { backStackEntry ->
                 val novelId = backStackEntry.arguments?.getLong("novelId") ?: 0L
                 val readOnly = backStackEntry.arguments?.getBoolean("readOnly") ?: false
-                val novelTitle = backStackEntry.arguments?.getString("novelTitle") ?: "创作"
+                val novelTitle = backStackEntry.arguments?.getString("novelTitle") ?: if (readOnly) "章节列表" else "创作"
                 ChapterListScreen(
                     novelId = novelId,
                     novelTitle = novelTitle,

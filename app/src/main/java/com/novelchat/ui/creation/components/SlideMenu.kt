@@ -2,8 +2,8 @@ package com.novelchat.ui.creation.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -36,6 +36,7 @@ fun SlideMenu(
     modifier: Modifier = Modifier
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
+    var isAddingRole by remember { mutableStateOf(false) }
 
     Surface(
         modifier = modifier
@@ -64,27 +65,27 @@ fun SlideMenu(
                 }
             )
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 16.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 16.dp)
             ) {
                 // 剧本状态
-                item {
-                    ListItem(
-                        headlineContent = { Text("剧本状态") },
-                        trailingContent = {
-                            TextButton(onClick = onToggleStatus) {
-                                Text(if (novelStatus == "draft") "标记为完成" else "变回草稿")
-                            }
+                ListItem(
+                    headlineContent = { Text("剧本状态") },
+                    trailingContent = {
+                        TextButton(onClick = onToggleStatus) {
+                            Text(if (novelStatus == "draft") "标记为完成" else "变回草稿")
+                        }
                         }
                     )
                     HorizontalDivider()
                 }
 
                 // ===== 节列表 =====
-                item {
-                    ListItem(
-                        headlineContent = { Text("节列表") },
+                ListItem(
+                    headlineContent = { Text("节列表") },
                         trailingContent = {
                             IconButton(onClick = onAddSegment) {
                                 Icon(Icons.Default.Add, contentDescription = "添加节")
@@ -93,8 +94,7 @@ fun SlideMenu(
                     )
                 }
 
-                items(segments, key = { it.id }) { segment ->
-                    val segIndex = segments.indexOf(segment)
+                segments.forEachIndexed { segIndex, segment ->
                     val isCurrent = segIndex == currentSegmentIndex
                     ListItem(
                         headlineContent = {
@@ -127,18 +127,16 @@ fun SlideMenu(
                 }
 
                 // ===== 角色管理 =====
-                item {
-                    ListItem(
-                        headlineContent = { Text("角色管理") },
-                        trailingContent = {
-                            IconButton(onClick = { showAddDialog = true }) {
-                                Icon(Icons.Default.PersonAdd, contentDescription = "添加角色")
-                            }
+                ListItem(
+                    headlineContent = { Text("角色管理") },
+                    trailingContent = {
+                        IconButton(onClick = { showAddDialog = true }) {
+                            Icon(Icons.Default.PersonAdd, contentDescription = "添加角色")
                         }
-                    )
-                }
+                    }
+                )
 
-                items(roles, key = { it.id }) { role ->
+                roles.forEach { role ->
                     val isProtagonist = role.id == currentProtagonistId
                     ListItem(
                         headlineContent = { Text(role.name) },

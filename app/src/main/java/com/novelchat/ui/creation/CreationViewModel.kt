@@ -88,6 +88,10 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     val selectedOtherRoleId: StateFlow<Long?> = _selectedOtherRoleId.asStateFlow()
 
     fun loadNovel(novelId: Long, chapterId: Long? = null) {
+        // 先清空旧内容
+        _messages.value = emptyList()
+        _segments.value = emptyList()
+        _chapters.value = emptyList()
         viewModelScope.launch {
             val n = repository.getNovelById(novelId) ?: return@launch
             _novel.value = n

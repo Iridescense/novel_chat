@@ -71,7 +71,7 @@ fun MessageBubble(
                     TextWithDot(
                         text = message.text,
                         showDot = message.hasHiddenNote && !showHiddenNote,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodySmall,
                         color = NarratorText,
                         textAlign = TextAlign.Center
                     )
