@@ -97,7 +97,7 @@ fun ChapterListScreen(
                         onClick = {
                             onOpenChapter(novelId, chapter.id, chapter.title)
                         },
-                        onLongClick = if (readOnly) {} else { { menuChapter = chapter } }
+                        onLongClick = if (readOnly) ({}) else ({ menuChapter = chapter })
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
