@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -134,7 +135,7 @@ fun CreationListScreen(
                         viewModel.toggleBookshelf(novel, !novel.isInBookshelf)
                     }, modifier = Modifier.fillMaxWidth()) {
                         Icon(
-                            if (novel.isInBookshelf) Icons.Default.Refresh else Icons.Default.Add,
+                            if (novel.isInBookshelf) Icons.Default.Sync else Icons.Default.Add,
                             contentDescription = null
                         )
                         Spacer(Modifier.width(8.dp)); Text(if (novel.isInBookshelf) "更新至书架" else "添加至书架")
