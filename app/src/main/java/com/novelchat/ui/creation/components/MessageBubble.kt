@@ -170,21 +170,6 @@ fun MessageBubble(
                 avatar
             }
         }
-
-            // 隐藏标注（在 Row 下方）
-            if (message.hasHiddenNote && showHiddenNote) {
-                Spacer(Modifier.height(4.dp))
-                Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
-                ) {
-                    Text(message.hiddenNote ?: "",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(8.dp))
-                }
-            }
-        }
     }
 }
 
