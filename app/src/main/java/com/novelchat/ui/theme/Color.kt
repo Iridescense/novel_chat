@@ -36,5 +36,5 @@ val DarkOutline = Color(0xFF6A6048)
 val ErrorColor = Color(0xFFBA1A1A)
 val OnErrorColor = Color(0xFFFFFFFF)
 val NarratorBg = Color(0x80D4D0B0)              // 旁白背景：半透明淡灰
-val NarratorText = Color(0xFFE8E4D0)             // 旁白文字：淡白
+val NarratorText = Color(0xFFFFFFFF)               // 旁白文字：白色
 val HiddenNoteDot = Color(0xFFFF6B35)            // 隐藏附注小圆点
