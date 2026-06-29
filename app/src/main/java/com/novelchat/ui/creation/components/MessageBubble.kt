@@ -3,6 +3,7 @@ package com.novelchat.ui.creation.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,15 +16,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,7 +34,6 @@ import com.novelchat.ui.theme.HiddenNoteDot
 import com.novelchat.ui.theme.NarratorBg
 import com.novelchat.ui.theme.NarratorText
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MessageBubble(
     message: Message,
@@ -103,18 +102,15 @@ fun MessageBubble(
             verticalAlignment = Alignment.Top
         ) {
             if (!isRight) {
-                // 他人头像 — 左侧，与消息框顶部对齐
                 RoleAvatar(role, Modifier.size(44.dp))
                 Spacer(modifier = Modifier.width(6.dp))
             }
 
-            // 消息内容区域（含角色名、气泡、隐藏附注）
             Box {
                 Column(
                     horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
                     modifier = Modifier.widthIn(max = 280.dp)
                 ) {
-                    // 角色名（仅非主角显示）
                     if (!isRight && role != null) {
                         Text(
                             text = role.name,
@@ -129,7 +125,6 @@ fun MessageBubble(
                         )
                     }
 
-                    // 消息气泡
                     Surface(
                         shape = RoundedCornerShape(
                             topStart = if (isRight) 16.dp else 4.dp,
@@ -150,15 +145,12 @@ fun MessageBubble(
                         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                             Text(
                                 text = message.text,
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontSize = 16.sp
-                                ),
+                                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
                                 color = textColor
                             )
                         }
                     }
 
-                    // 隐藏附注（展开时显示在气泡下方）
                     if (message.hasHiddenNote && showHiddenNote) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Surface(
@@ -175,16 +167,11 @@ fun MessageBubble(
                     }
                 }
 
-                // 隐藏附注小圆点：放在气泡右上角（主角）/ 左上角（他人）
-                // 与气泡重叠约一半
                 if (message.hasHiddenNote && !showHiddenNote) {
                     Box(
                         modifier = Modifier
                             .align(if (isRight) Alignment.TopEnd else Alignment.TopStart)
-                            .offset(
-                                x = if (isRight) 0.dp else (-6).dp,
-                                y = 0.dp
-                            )
+                            .offset(x = if (isRight) 0.dp else (-6).dp, y = 0.dp)
                     ) {
                         Surface(
                             modifier = Modifier.size(16.dp),
@@ -197,7 +184,6 @@ fun MessageBubble(
 
             if (isRight) {
                 Spacer(modifier = Modifier.width(6.dp))
-                // 主角头像 — 右侧，与消息框顶部对齐
                 RoleAvatar(role, Modifier.size(44.dp))
             }
         }
