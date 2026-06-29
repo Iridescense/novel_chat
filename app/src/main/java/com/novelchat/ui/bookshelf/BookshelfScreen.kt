@@ -42,11 +42,13 @@ fun BookshelfScreen(
     val showNewDialog by viewModel.showNewNovelDialog.collectAsState()
     val editingNovel by viewModel.editingNovel.collectAsState()
 
+    // 长按菜单状态
     var menuNovel by remember { mutableStateOf<Novel?>(null) }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    // 导入文件选择器
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -56,7 +58,9 @@ fun BookshelfScreen(
                 val repo = AppModule.getRepository(app)
                 try {
                     JsonExporter.importNovelFromUri(context, repo, it)
-                } catch (_: Exception) { }
+                } catch (_: Exception) {
+                    // 导入失败忽略
+                }
             }
         }
     }
@@ -80,6 +84,7 @@ fun BookshelfScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
+            // 搜索栏
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { viewModel.onSearchQueryChange(it) },
@@ -104,6 +109,7 @@ fun BookshelfScreen(
             )
 
             if (novels.isEmpty()) {
+                // 空状态
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -130,6 +136,7 @@ fun BookshelfScreen(
                     }
                 }
             } else {
+                // 3:4 封面网格
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     contentPadding = PaddingValues(16.dp),
@@ -149,6 +156,7 @@ fun BookshelfScreen(
         }
     }
 
+    // 新建剧本对话框
     if (showNewDialog) {
         NovelEditDialog(
             title = "新建剧本",
@@ -160,6 +168,7 @@ fun BookshelfScreen(
         )
     }
 
+    // 编辑剧本对话框
     editingNovel?.let { novel ->
         NovelEditDialog(
             title = "编辑剧本",
@@ -174,6 +183,7 @@ fun BookshelfScreen(
         )
     }
 
+    // 长按菜单
     menuNovel?.let { novel ->
         AlertDialog(
             onDismissRequest = { menuNovel = null },
@@ -306,6 +316,7 @@ private fun NovelEditDialog(
     var novelDesc by remember { mutableStateOf(initialDescription) }
     var coverColor by remember { mutableStateOf(initialCoverColor) }
 
+    // 预设颜色选项
     val colorOptions = listOf(
         "#FFF8DC", "#FFE4E1", "#E8F5E9", "#E3F2FD",
         "#FFF3E0", "#F3E5F5", "#E0F7FA", "#FBE9E7"

@@ -21,7 +21,7 @@ import com.novelchat.ui.bookshelf.BookshelfViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreationListScreen(
-    onOpenEditor: (Long) -> Unit,
+    onOpenEditor: (novelId: Long) -> Unit,
     viewModel: BookshelfViewModel = viewModel()
 ) {
     val novels by viewModel.novels.collectAsState()
@@ -94,6 +94,7 @@ fun CreationListScreen(
         }
     }
 
+    // 新建剧本对话框
     if (showNewDialog) {
         NovelCreateDialog(
             onConfirm = { title, description ->
@@ -165,6 +166,7 @@ private fun NovelListItem(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 状态标签
             val statusColor = if (novel.status == Novel.STATUS_COMPLETED) {
                 MaterialTheme.colorScheme.primary
             } else {
@@ -186,6 +188,7 @@ private fun NovelListItem(
 
             Spacer(modifier = Modifier.width(12.dp))
 
+            // 剧本名
             Text(
                 text = novel.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -196,6 +199,7 @@ private fun NovelListItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
+            // 箭头
             Icon(
                 Icons.Default.KeyboardArrowRight,
                 contentDescription = null,

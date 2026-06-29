@@ -100,31 +100,41 @@ fun MessageBubble(
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = 3.dp),
             horizontalArrangement = if (isRight) Arrangement.End else Arrangement.Start,
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            // 左侧（他人）或右侧（主角）：头像
+            val avatar = RoleAvatar(role, Modifier.size(44.dp))
+
             if (!isRight) {
-                RoleAvatar(role, Modifier.size(44.dp))
+                avatar
                 Spacer(modifier = Modifier.width(6.dp))
             }
 
+            // 名字 + 气泡
             Column(
                 horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
                 modifier = Modifier.widthIn(max = 280.dp)
             ) {
-                if (!isRight && role != null) {
+                // 名字（主角和他人都有名字，小字）
+                if (role != null) {
                     Text(
                         text = role.name,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium,
                         color = try {
                             Color(android.graphics.Color.parseColor(role.color))
                         } catch (_: Exception) {
                             MaterialTheme.colorScheme.outline
                         },
-                        modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
+                        modifier = Modifier.padding(
+                            start = if (isRight) 0.dp else 4.dp,
+                            end = if (isRight) 4.dp else 0.dp,
+                            bottom = 2.dp
+                        )
                     )
                 }
 
+                // 气泡（宽度自适应文字）
                 Surface(
                     shape = RoundedCornerShape(
                         topStart = if (isRight) 16.dp else 4.dp,
@@ -133,14 +143,16 @@ fun MessageBubble(
                         bottomEnd = 16.dp
                     ),
                     color = bubbleColor,
-                    modifier = Modifier.pointerInput(Unit) {
-                        detectTapGestures(
-                            onDoubleTap = { onDoubleTap() },
-                            onLongPress = {
-                                if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
-                            }
-                        )
-                    }
+                    modifier = Modifier
+                        .widthIn(min = 40.dp, max = 280.dp)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onDoubleTap = { onDoubleTap() },
+                                onLongPress = {
+                                    if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
+                                }
+                            )
+                        }
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                         TextWithDot(
@@ -152,6 +164,7 @@ fun MessageBubble(
                     }
                 }
 
+                // 隐藏标注展开内容
                 if (message.hasHiddenNote && showHiddenNote) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Surface(
@@ -170,7 +183,7 @@ fun MessageBubble(
 
             if (isRight) {
                 Spacer(modifier = Modifier.width(6.dp))
-                RoleAvatar(role, Modifier.size(44.dp))
+                avatar
             }
         }
     }

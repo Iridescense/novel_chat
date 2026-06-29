@@ -65,7 +65,8 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     // 是否有未保存的修改
     private var savedVersion: Int = 0
     private var currentVersion: Int = 0
-    val hasUnsavedChanges: StateFlow<Boolean> = MutableStateFlow(false)
+    private val _hasUnsavedChanges = MutableStateFlow(false)
+    val hasUnsavedChanges: StateFlow<Boolean> = _hasUnsavedChanges.asStateFlow()
 
     // 左侧滑菜单是否打开
     private val _showSlideMenu = MutableStateFlow(false)
@@ -86,7 +87,7 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     private val _selectedOtherRoleId = MutableStateFlow<Long?>(null)
     val selectedOtherRoleId: StateFlow<Long?> = _selectedOtherRoleId.asStateFlow()
 
-    fun loadNovel(novelId: Long) {
+    fun loadNovel(novelId: Long, chapterId: Long? = null) {
         viewModelScope.launch {
             val n = repository.getNovelById(novelId) ?: return@launch
             _novel.value = n
@@ -102,14 +103,16 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
             repository.getChaptersByNovelId(novelId).collect { chapterList ->
                 _chapters.value = chapterList
                 if (chapterList.isEmpty()) {
-                    // 自动新建第一章
                     val newChapterId = repository.insertChapter(
                         Chapter(novelId = novelId, title = "第一章", orderIndex = 0)
                     )
-                    // 自动为第一章创建一个节
                     repository.insertSegment(
                         Segment(chapterId = newChapterId, title = "", orderIndex = 0)
                     )
+                } else if (chapterId != null) {
+                    // 切换到指定章节
+                    val idx = chapterList.indexOfFirst { it.id == chapterId }
+                    if (idx >= 0) _currentChapterIndex.value = idx
                 }
             }
         }
@@ -384,13 +387,14 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     // ========== 保存 ==========
 
     fun save() {
-        savedVersion = currentVersion
-        _novel.value?.let { novel ->
-            viewModelScope.launch {
+        viewModelScope.launch {
+            _novel.value?.let { novel ->
                 repository.updateNovel(
                     novel.copy(updatedAt = System.currentTimeMillis())
                 )
             }
+            savedVersion = currentVersion
+            _hasUnsavedChanges.value = false
         }
     }
 
@@ -410,7 +414,7 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
 
     private fun markChanged() {
         currentVersion++
-        (hasUnsavedChanges as MutableStateFlow<Boolean>).value = currentVersion != savedVersion
+        _hasUnsavedChanges.value = currentVersion != savedVersion
     }
 }
 

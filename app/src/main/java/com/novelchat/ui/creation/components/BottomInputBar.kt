@@ -39,12 +39,14 @@ fun BottomInputBar(
         color = MaterialTheme.colorScheme.surface
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
+            // 发送者选择行
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    // 发送者按钮
                     Box {
                         when (senderType) {
                             SenderType.PROTAGONIST -> {
@@ -71,7 +73,9 @@ fun BottomInputBar(
                                 }
                             }
                             SenderType.NARRATOR -> {
-                                TextButton(onClick = { showSenderMenu = true }) {
+                                TextButton(onClick = {
+                                    showSenderMenu = true
+                                }) {
                                     Icon(Icons.Default.TextSnippet, contentDescription = null,
                                         modifier = Modifier.size(18.dp))
                                     Spacer(Modifier.width(4.dp))
@@ -82,6 +86,7 @@ fun BottomInputBar(
                             }
                         }
 
+                        // 切换发送者类型的菜单
                         DropdownMenu(
                             expanded = showSenderMenu,
                             onDismissRequest = { showSenderMenu = false }
@@ -113,6 +118,7 @@ fun BottomInputBar(
                         }
                     }
 
+                    // 其他人展开列表
                     if (showOtherRoles && senderType == SenderType.OTHER) {
                         Surface(
                             modifier = Modifier.padding(start = 8.dp),
@@ -133,7 +139,9 @@ fun BottomInputBar(
                                             }
                                             .padding(horizontal = 12.dp, vertical = 6.dp)
                                     ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
                                             RoleAvatar(role, Modifier.size(24.dp))
                                             Spacer(Modifier.width(6.dp))
                                             Text(role.name, style = MaterialTheme.typography.bodySmall)
@@ -145,11 +153,13 @@ fun BottomInputBar(
                     }
                 }
 
+                // 格式按钮（预留）
                 IconButton(onClick = { }) {
                     Icon(Icons.Default.FormatBold, contentDescription = "格式")
                 }
             }
 
+            // 输入框 + 发送按钮
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -191,6 +201,7 @@ fun BottomInputBar(
         }
     }
 
+    // 主角设置对话框
     if (showProtagonistDialog) {
         AlertDialog(
             onDismissRequest = { showProtagonistDialog = false },

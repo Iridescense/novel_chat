@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import com.novelchat.ui.bookshelf.BookshelfScreen
+import com.novelchat.ui.creation.ChapterListScreen
 import com.novelchat.ui.creation.CreationEditorScreen
 import com.novelchat.ui.creation.CreationListScreen
 import com.novelchat.ui.reader.ReaderScreen
@@ -46,7 +47,6 @@ fun NavGraph(importPath: String? = null) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // 判断是否显示底部导航（书架/创作台/设置 显示，阅读器/编辑器 隐藏）
     val showBottomBar = currentDestination?.route in listOf(
         Routes.BOOKSHELF,
         Routes.CREATION_LIST,
@@ -89,28 +89,51 @@ fun NavGraph(importPath: String? = null) {
                         navController.navigate(Routes.reader(novelId))
                     },
                     onOpenCreation = { novelId ->
-                        navController.navigate(Routes.creationEditor(novelId))
+                        navController.navigate(Routes.chapterList(novelId))
                     }
                 )
             }
 
-            // 创作台 — 列表
+            // 创作台 — 剧本列表
             composable(Routes.CREATION_LIST) {
                 CreationListScreen(
                     onOpenEditor = { novelId ->
-                        navController.navigate(Routes.creationEditor(novelId))
+                        navController.navigate(Routes.chapterList(novelId))
+                    }
+                )
+            }
+
+            // 创作台 — 章节列表
+            composable(
+                route = "chapter_list/{novelId}",
+                arguments = listOf(navArgument("novelId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val novelId = backStackEntry.arguments?.getLong("novelId") ?: 0L
+                // 获取剧本名
+                val novelTitle = backStackEntry.arguments?.getString("novelTitle") ?: "创作"
+                ChapterListScreen(
+                    novelId = novelId,
+                    novelTitle = novelTitle,
+                    onBack = { navController.popBackStack() },
+                    onOpenChapter = { nid, chId, chTitle ->
+                        navController.navigate(Routes.creationEditor(nid, chId))
                     }
                 )
             }
 
             // 创作台 — 编辑器
             composable(
-                route = "creation_editor/{novelId}",
-                arguments = listOf(navArgument("novelId") { type = NavType.LongType })
+                route = "creation_editor/{novelId}/{chapterId}",
+                arguments = listOf(
+                    navArgument("novelId") { type = NavType.LongType },
+                    navArgument("chapterId") { type = NavType.LongType }
+                )
             ) { backStackEntry ->
                 val novelId = backStackEntry.arguments?.getLong("novelId") ?: 0L
+                val chapterId = backStackEntry.arguments?.getLong("chapterId") ?: 0L
                 CreationEditorScreen(
                     novelId = novelId,
+                    chapterId = chapterId,
                     onBack = { navController.popBackStack() },
                     onPreview = { id, startIndex ->
                         navController.navigate(Routes.reader(id, startIndex))
@@ -143,12 +166,5 @@ fun NavGraph(importPath: String? = null) {
                 SettingsScreen()
             }
         }
-    }
-}
-
-@Composable
-fun PlaceholderScreen(text: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text, style = MaterialTheme.typography.headlineMedium)
     }
 }
