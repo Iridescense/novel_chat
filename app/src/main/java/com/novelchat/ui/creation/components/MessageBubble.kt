@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -33,6 +32,8 @@ import com.novelchat.data.model.Role
 import com.novelchat.ui.theme.HiddenNoteDot
 import com.novelchat.ui.theme.NarratorBg
 import com.novelchat.ui.theme.NarratorText
+
+val dotSize = (16f / 4).sp
 
 @Composable
 fun MessageBubble(
@@ -68,15 +69,15 @@ fun MessageBubble(
                     }
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
+                    TextWithDot(
                         text = message.text,
+                        showDot = message.hasHiddenNote && !showHiddenNote,
                         style = MaterialTheme.typography.bodyLarge,
                         color = NarratorText,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                        textAlign = TextAlign.Center
                     )
-                    if (message.hasHiddenNote) {
-                        HiddenNoteDotIndicator(showHiddenNote, message.hiddenNote)
+                    if (message.hasHiddenNote && showHiddenNote) {
+                        HiddenNoteContent(message.hiddenNote)
                     }
                 }
             }
@@ -106,78 +107,63 @@ fun MessageBubble(
                 Spacer(modifier = Modifier.width(6.dp))
             }
 
-            Box {
-                Column(
-                    horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
-                    modifier = Modifier.widthIn(max = 280.dp)
-                ) {
-                    if (!isRight && role != null) {
-                        Text(
-                            text = role.name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = try {
-                                Color(android.graphics.Color.parseColor(role.color))
-                            } catch (_: Exception) {
-                                MaterialTheme.colorScheme.outline
-                            },
-                            modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
+            Column(
+                horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
+                modifier = Modifier.widthIn(max = 280.dp)
+            ) {
+                if (!isRight && role != null) {
+                    Text(
+                        text = role.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = try {
+                            Color(android.graphics.Color.parseColor(role.color))
+                        } catch (_: Exception) {
+                            MaterialTheme.colorScheme.outline
+                        },
+                        modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
+                    )
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(
+                        topStart = if (isRight) 16.dp else 4.dp,
+                        topEnd = if (isRight) 4.dp else 16.dp,
+                        bottomStart = 16.dp,
+                        bottomEnd = 16.dp
+                    ),
+                    color = bubbleColor,
+                    modifier = Modifier.pointerInput(Unit) {
+                        detectTapGestures(
+                            onDoubleTap = { onDoubleTap() },
+                            onLongPress = {
+                                if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
+                            }
                         )
                     }
-
-                    Surface(
-                        shape = RoundedCornerShape(
-                            topStart = if (isRight) 16.dp else 4.dp,
-                            topEnd = if (isRight) 4.dp else 16.dp,
-                            bottomStart = 16.dp,
-                            bottomEnd = 16.dp
-                        ),
-                        color = bubbleColor,
-                        modifier = Modifier.pointerInput(Unit) {
-                            detectTapGestures(
-                                onDoubleTap = { onDoubleTap() },
-                                onLongPress = {
-                                    if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
-                                }
-                            )
-                        }
-                    ) {
-                        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-                            Text(
-                                text = message.text,
-                                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-                                color = textColor
-                            )
-                        }
-                    }
-
-                    if (message.hasHiddenNote && showHiddenNote) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
-                        ) {
-                            Text(
-                                text = message.hiddenNote ?: "",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(8.dp)
-                            )
-                        }
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                        TextWithDot(
+                            text = message.text,
+                            showDot = message.hasHiddenNote && !showHiddenNote,
+                            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
+                            color = textColor
+                        )
                     }
                 }
 
-                if (message.hasHiddenNote && !showHiddenNote) {
-                    Box(
-                        modifier = Modifier
-                            .align(if (isRight) Alignment.TopEnd else Alignment.TopStart)
-                            .offset(x = if (isRight) 0.dp else (-6).dp, y = 0.dp)
+                if (message.hasHiddenNote && showHiddenNote) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
                     ) {
-                        Surface(
-                            modifier = Modifier.size(16.dp),
-                            shape = RoundedCornerShape(50),
-                            color = HiddenNoteDot
-                        ) {}
+                        Text(
+                            text = message.hiddenNote ?: "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(8.dp)
+                        )
                     }
                 }
             }
@@ -191,36 +177,58 @@ fun MessageBubble(
 }
 
 @Composable
-private fun HiddenNoteDotIndicator(
-    expanded: Boolean,
-    noteText: String?
+private fun TextWithDot(
+    text: String,
+    showDot: Boolean,
+    style: androidx.compose.ui.text.TextStyle,
+    color: Color,
+    textAlign: TextAlign = TextAlign.Start
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        if (!expanded) {
+    if (showDot) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text(
                 text = "●",
                 color = HiddenNoteDot,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(top = 4.dp)
+                fontSize = dotSize,
+                modifier = Modifier.padding(end = 4.dp)
+            )
+            Text(
+                text = text,
+                style = style,
+                color = color,
+                textAlign = textAlign,
+                modifier = Modifier.weight(1f)
             )
         }
-        AnimatedVisibility(
-            visible = expanded,
-            enter = slideInVertically { it }
-        ) {
-            Surface(
-                shape = RoundedCornerShape(6.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
-                modifier = Modifier.padding(top = 4.dp)
-            ) {
-                Text(
-                    text = noteText ?: "",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(8.dp)
-                )
-            }
-        }
+    } else {
+        Text(
+            text = text,
+            style = style,
+            color = color,
+            textAlign = textAlign,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp)
+        )
+    }
+}
+
+@Composable
+private fun HiddenNoteContent(noteText: String?) {
+    Surface(
+        shape = RoundedCornerShape(6.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = noteText ?: "",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(8.dp)
+        )
     }
 }
 
