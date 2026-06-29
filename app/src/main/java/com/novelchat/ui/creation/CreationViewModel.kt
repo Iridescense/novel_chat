@@ -225,20 +225,25 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     // ========== 角色操作 ==========
 
     fun addRole(name: String, color: String, avatarType: String, avatarValue: String) {
-        val novelId = _novel.value?.id ?: return
+        val novelId = _novel.value?.id
+        if (novelId == null || novelId == 0L) return
         viewModelScope.launch {
-            val order = _roles.value.size
-            repository.insertRole(
-                Role(
-                    novelId = novelId,
-                    name = name,
-                    color = color,
-                    avatarType = avatarType,
-                    avatarValue = avatarValue,
-                    orderIndex = order
+            try {
+                val order = _roles.value.size
+                repository.insertRole(
+                    Role(
+                        novelId = novelId,
+                        name = name,
+                        color = color,
+                        avatarType = avatarType,
+                        avatarValue = avatarValue,
+                        orderIndex = order
+                    )
                 )
-            )
-            markChanged()
+                markChanged()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

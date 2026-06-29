@@ -114,6 +114,7 @@ fun CreationListScreen(
     // 长按菜单对话框
     menuNovel?.let { novel ->
         var renameText by remember { mutableStateOf(novel.title) }
+        var descText by remember { mutableStateOf(novel.description) }
         AlertDialog(
             onDismissRequest = { menuNovel = null },
             title = { Text(novel.title) },
@@ -121,6 +122,9 @@ fun CreationListScreen(
                 Column {
                     OutlinedTextField(value = renameText, onValueChange = { renameText = it },
                         label = { Text("剧本名") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(value = descText, onValueChange = { descText = it },
+                        label = { Text("简介") }, maxLines = 3, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
                     TextButton(onClick = {
                         menuNovel = null
@@ -140,7 +144,7 @@ fun CreationListScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.updateNovel(novel.id, renameText.trim(), novel.description, novel.coverColor)
+                    viewModel.updateNovel(novel.id, renameText.trim(), descText.trim(), novel.coverColor)
                     menuNovel = null
                 }) { Text("保存") }
             },

@@ -20,6 +20,7 @@ import com.novelchat.data.model.Chapter
 fun ChapterListScreen(
     novelId: Long,
     novelTitle: String,
+    readOnly: Boolean = false,
     onBack: () -> Unit,
     onOpenChapter: (Long, Long, String) -> Unit,
     viewModel: CreationViewModel = viewModel()
@@ -51,11 +52,13 @@ fun ChapterListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "新建章节")
+            if (!readOnly) {
+                FloatingActionButton(
+                    onClick = { showAddDialog = true },
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "新建章节")
+                }
             }
         }
     ) { padding ->
@@ -94,7 +97,7 @@ fun ChapterListScreen(
                         onClick = {
                             onOpenChapter(novelId, chapter.id, chapter.title)
                         },
-                        onLongClick = { menuChapter = chapter }
+                        onLongClick = if (readOnly) {} else { { menuChapter = chapter } }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -131,8 +134,8 @@ fun ChapterListScreen(
         )
     }
 
-    // 长按章节菜单
-    menuChapter?.let { chapter ->
+    // 长按章节菜单（只读模式下不显示）
+    if (!readOnly) { menuChapter?.let { chapter ->
         var renameText by remember { mutableStateOf(chapter.title) }
         AlertDialog(
             onDismissRequest = { menuChapter = null },
@@ -159,6 +162,7 @@ fun ChapterListScreen(
             },
             dismissButton = { TextButton(onClick = { menuChapter = null }) { Text("取消") } }
         )
+    }
     }
 }
 

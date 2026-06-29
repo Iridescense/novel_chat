@@ -86,7 +86,7 @@ fun NavGraph(importPath: String? = null) {
             composable(Routes.BOOKSHELF) {
                 BookshelfScreen(
                     onOpenReader = { novelId ->
-                        navController.navigate(Routes.reader(novelId))
+                        navController.navigate(Routes.chapterList(novelId, readOnly = true))
                     },
                     onOpenCreation = { novelId ->
                         navController.navigate(Routes.chapterList(novelId))
@@ -105,18 +105,26 @@ fun NavGraph(importPath: String? = null) {
 
             // 创作台 — 章节列表
             composable(
-                route = "chapter_list/{novelId}",
-                arguments = listOf(navArgument("novelId") { type = NavType.LongType })
+                route = "chapter_list/{novelId}?readOnly={readOnly}",
+                arguments = listOf(
+                    navArgument("novelId") { type = NavType.LongType },
+                    navArgument("readOnly") { type = NavType.BoolType; defaultValue = false }
+                )
             ) { backStackEntry ->
                 val novelId = backStackEntry.arguments?.getLong("novelId") ?: 0L
-                // 获取剧本名
+                val readOnly = backStackEntry.arguments?.getBoolean("readOnly") ?: false
                 val novelTitle = backStackEntry.arguments?.getString("novelTitle") ?: "创作"
                 ChapterListScreen(
                     novelId = novelId,
                     novelTitle = novelTitle,
+                    readOnly = readOnly,
                     onBack = { navController.popBackStack() },
                     onOpenChapter = { nid, chId, chTitle ->
-                        navController.navigate(Routes.creationEditor(nid, chId))
+                        if (readOnly) {
+                            navController.navigate(Routes.reader(nid))
+                        } else {
+                            navController.navigate(Routes.creationEditor(nid, chId))
+                        }
                     }
                 )
             }
