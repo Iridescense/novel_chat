@@ -81,7 +81,6 @@ fun SlideMenu(
                         }
                     )
                     HorizontalDivider()
-                }
 
                 // ===== 节列表 =====
                 ListItem(
@@ -92,7 +91,6 @@ fun SlideMenu(
                             }
                         }
                     )
-                }
 
                 segments.forEachIndexed { segIndex, segment ->
                     val isCurrent = segIndex == currentSegmentIndex
