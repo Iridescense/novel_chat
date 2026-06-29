@@ -95,52 +95,44 @@ fun MessageBubble(
             MaterialTheme.colorScheme.onSurfaceVariant
         }
 
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 3.dp),
-            horizontalArrangement = if (isRight) Arrangement.End else Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 左侧（他人）或右侧（主角）：头像
-            val avatar = RoleAvatar(role, Modifier.size(44.dp))
+        val avatar = RoleAvatar(role, Modifier.size(44.dp))
 
-            if (!isRight) {
-                avatar
-                Spacer(modifier = Modifier.width(6.dp))
-            }
-
-            // 名字 + 气泡
-            Column(
-                horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
-                modifier = Modifier.widthIn(max = 280.dp)
+        Column(modifier = modifier.padding(horizontal = 8.dp, vertical = 3.dp)) {
+            // 第一行：头像 + 名字（在气泡上方）
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = if (isRight) Arrangement.End else Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // 名字（主角和他人都有名字，小字）
-                if (role != null) {
-                    Text(
-                        text = role.name,
+                if (!isRight) {
+                    avatar; Spacer(Modifier.width(6.dp))
+                    if (role != null) Text(role.name,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium,
-                        color = try {
-                            Color(android.graphics.Color.parseColor(role.color))
-                        } catch (_: Exception) {
-                            MaterialTheme.colorScheme.outline
-                        },
-                        modifier = Modifier.padding(
-                            start = if (isRight) 0.dp else 4.dp,
-                            end = if (isRight) 4.dp else 0.dp,
-                            bottom = 2.dp
-                        )
-                    )
+                        color = try { Color(android.graphics.Color.parseColor(role.color)) }
+                                catch (_: Exception) { MaterialTheme.colorScheme.outline })
                 }
+                if (isRight) {
+                    if (role != null) Text(role.name,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = try { Color(android.graphics.Color.parseColor(role.color)) }
+                                catch (_: Exception) { MaterialTheme.colorScheme.outline })
+                    Spacer(Modifier.width(6.dp))
+                    avatar
+                }
+            }
 
-                // 气泡（宽度自适应文字）
+            // 第二行：气泡
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = if (isRight) Arrangement.End else Arrangement.Start
+            ) {
                 Surface(
                     shape = RoundedCornerShape(
                         topStart = if (isRight) 16.dp else 4.dp,
                         topEnd = if (isRight) 4.dp else 16.dp,
-                        bottomStart = 16.dp,
-                        bottomEnd = 16.dp
+                        bottomStart = 16.dp, bottomEnd = 16.dp
                     ),
                     color = bubbleColor,
                     modifier = Modifier
@@ -154,36 +146,27 @@ fun MessageBubble(
                             )
                         }
                 ) {
-                    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-                        TextWithDot(
-                            text = message.text,
+                    Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                        TextWithDot(text = message.text,
                             showDot = message.hasHiddenNote && !showHiddenNote,
                             style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-                            color = textColor
-                        )
-                    }
-                }
-
-                // 隐藏标注展开内容
-                if (message.hasHiddenNote && showHiddenNote) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
-                    ) {
-                        Text(
-                            text = message.hiddenNote ?: "",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(8.dp)
-                        )
+                            color = textColor)
                     }
                 }
             }
 
-            if (isRight) {
-                Spacer(modifier = Modifier.width(6.dp))
-                avatar
+            // 隐藏标注（在 Row 下方）
+            if (message.hasHiddenNote && showHiddenNote) {
+                Spacer(Modifier.height(4.dp))
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
+                ) {
+                    Text(message.hiddenNote ?: "",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(8.dp))
+                }
             }
         }
     }

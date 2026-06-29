@@ -70,7 +70,9 @@ fun CreationEditorScreen(
         detectHorizontalDragGestures(
             onDragEnd = { },
             onHorizontalDrag = { _, dragAmount ->
-                if (dragAmount < -50) viewModel.toggleSlideMenu()
+                if (dragAmount < -50) {
+                    viewModel.toggleSlideMenu()
+                }
             }
         )
     }
@@ -86,12 +88,16 @@ fun CreationEditorScreen(
                 TopAppBar(
                     title = {
                         Column {
-                            Text(novel?.title ?: "加载中…",
-                                style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                novel?.title ?: "加载中…",
+                                style = MaterialTheme.typography.titleMedium
+                            )
                             if (currentChapter != null) {
-                                Text(chapterDisplay,
+                                Text(
+                                    chapterDisplay,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.outline)
+                                    color = MaterialTheme.colorScheme.outline
+                                )
                             }
                         }
                     },
@@ -113,26 +119,38 @@ fun CreationEditorScreen(
                             viewModel.save()
                             scope.launch { snackbarHostState.showSnackbar("已保存 ✓") }
                         }) {
-                            Icon(Icons.Default.Save, contentDescription = "保存",
+                            Icon(
+                                Icons.Default.Save,
+                                contentDescription = "保存",
                                 tint = if (hasUnsavedChanges) MaterialTheme.colorScheme.primary
-                                       else MaterialTheme.colorScheme.outline)
+                                       else MaterialTheme.colorScheme.outline
+                            )
                         }
                         IconButton(onClick = { viewModel.toggleSlideMenu() }) {
                             Icon(Icons.Default.Menu, contentDescription = "菜单")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background)
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
                 )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { padding ->
-            Box(Modifier.fillMaxSize().padding(padding)) {
-                Column(Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
                     val listState = rememberLazyListState()
+
                     LazyColumn(
                         state = listState,
-                        modifier = Modifier.weight(1f).fillMaxWidth().then(swipeModifier),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .then(swipeModifier),
                         contentPadding = PaddingValues(vertical = 8.dp)
                     ) {
                         if (currentSegment != null && currentSegment!!.title.isNotBlank()) {
@@ -140,18 +158,27 @@ fun CreationEditorScreen(
                                 SegmentDivider(
                                     title = currentSegment!!.title,
                                     onTitleChange = { newTitle ->
-                                        currentSegment?.let { viewModel.updateSegmentTitle(it, newTitle) }
+                                        currentSegment?.let {
+                                            viewModel.updateSegmentTitle(it, newTitle)
+                                        }
                                     }
                                 )
                             }
                         }
+
                         itemsIndexed(messages, key = { _, msg -> msg.id }) { index, message ->
                             val role = message.roleId?.let { id -> roles.find { it.id == id } }
-                            val isPro = currentProtagonist?.let { it.id == message.roleId } == true
-                            MessageBubble(message = message, role = role, isProtagonist = isPro,
-                                onDoubleTap = { actionMessage = message })
+                            val isProtagonist = currentProtagonist?.let { it.id == message.roleId } == true
+
+                            MessageBubble(
+                                message = message,
+                                role = role,
+                                isProtagonist = isProtagonist,
+                                onDoubleTap = { actionMessage = message }
+                            )
                         }
                     }
+
                     BottomInputBar(
                         senderType = inputSenderType,
                         protagonistName = currentProtagonist?.name ?: "未设置",
@@ -169,12 +196,16 @@ fun CreationEditorScreen(
             }
         }
 
-        // 菜单 + 背景点击关闭
+        // 左侧滑菜单（覆盖层）
         if (showSlideMenu) {
-            Box(Modifier.fillMaxSize().clickable(
-                indication = null,
-                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-            ) { viewModel.closeSlideMenu() })
+            // 半透明背景点击关闭
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(indication = null,
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                    ) { viewModel.closeSlideMenu() }
+            )
             AnimatedVisibility(
                 visible = showSlideMenu,
                 enter = slideInHorizontally { it } + fadeIn(),
@@ -195,7 +226,10 @@ fun CreationEditorScreen(
                         viewModel.addRole(name, color, avatarType, avatarValue)
                     },
                     onDeleteRole = { viewModel.deleteRole(it) },
-                    onSave = { viewModel.save(); scope.launch { snackbarHostState.showSnackbar("已保存 ✓") } },
+                    onSave = {
+                        viewModel.save()
+                        scope.launch { snackbarHostState.showSnackbar("已保存 ✓") }
+                    },
                     onToggleStatus = { viewModel.toggleNovelStatus() },
                     onClose = { viewModel.closeSlideMenu() }
                 )
@@ -203,17 +237,25 @@ fun CreationEditorScreen(
         }
     }
 
+    // 未保存退出对话框
     if (showExitDialog) {
         AlertDialog(
             onDismissRequest = { showExitDialog = false },
             title = { Text("未保存的修改") },
             text = { Text("当前有未保存的修改，是否保存？") },
             confirmButton = {
-                TextButton(onClick = { viewModel.save(); showExitDialog = false; onBack() }) { Text("保存") }
+                TextButton(onClick = {
+                    viewModel.save()
+                    showExitDialog = false
+                    onBack()
+                }) { Text("保存") }
             },
             dismissButton = {
                 Row {
-                    TextButton(onClick = { showExitDialog = false; onBack() }) { Text("不保存") }
+                    TextButton(onClick = {
+                        showExitDialog = false
+                        onBack()
+                    }) { Text("不保存") }
                     TextButton(onClick = { showExitDialog = false }) { Text("取消") }
                 }
             }
@@ -227,13 +269,22 @@ fun CreationEditorScreen(
             title = { Text("编辑隐藏附注") },
             text = {
                 Column {
-                    Text("消息内容: ${msg.text}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                    Text("消息内容: ${msg.text}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline)
                     Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(value = noteText, onValueChange = { noteText = it },
-                        label = { Text("隐藏描述（长按可见）") }, maxLines = 5, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(
+                        value = noteText,
+                        onValueChange = { noteText = it },
+                        label = { Text("隐藏描述（长按可见）") },
+                        maxLines = 5,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             },
-            confirmButton = { TextButton(onClick = { viewModel.saveHiddenNote(msg.id, noteText.trim()) }) { Text("确认") } },
+            confirmButton = {
+                TextButton(onClick = { viewModel.saveHiddenNote(msg.id, noteText.trim()) }) { Text("确认") }
+            },
             dismissButton = { TextButton(onClick = { viewModel.cancelEditingHiddenNote() }) { Text("取消") } }
         )
     }
@@ -244,15 +295,21 @@ fun CreationEditorScreen(
             title = { Text("消息操作") },
             text = {
                 Column {
-                    Text(msg.text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(msg.text, style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(16.dp))
-                    TextButton(onClick = { editingMessage = msg; actionMessage = null }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Edit, contentDescription = null); Spacer(Modifier.width(8.dp)); Text("编辑消息")
+                    TextButton(onClick = { editingMessage = msg; actionMessage = null },
+                        modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Edit, contentDescription = null)
+                        Spacer(Modifier.width(8.dp)); Text("编辑消息")
                     }
-                    TextButton(onClick = { viewModel.startEditingHiddenNote(msg); actionMessage = null }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.NoteAdd, contentDescription = null); Spacer(Modifier.width(8.dp)); Text("编辑隐藏标注")
+                    TextButton(onClick = { viewModel.startEditingHiddenNote(msg); actionMessage = null },
+                        modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.NoteAdd, contentDescription = null)
+                        Spacer(Modifier.width(8.dp)); Text("编辑隐藏标注")
                     }
-                    TextButton(onClick = { viewModel.deleteMessage(msg); actionMessage = null }, modifier = Modifier.fillMaxWidth()) {
+                    TextButton(onClick = { viewModel.deleteMessage(msg); actionMessage = null },
+                        modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                         Spacer(Modifier.width(8.dp)); Text("删除该消息", color = MaterialTheme.colorScheme.error)
                     }
@@ -267,8 +324,20 @@ fun CreationEditorScreen(
         AlertDialog(
             onDismissRequest = { editingMessage = null },
             title = { Text("编辑消息") },
-            text = { OutlinedTextField(value = editText, onValueChange = { editText = it }, modifier = Modifier.fillMaxWidth(), maxLines = 5) },
-            confirmButton = { TextButton(onClick = { viewModel.updateMessage(msg.copy(text = editText.trim())); editingMessage = null }) { Text("保存") } },
+            text = {
+                OutlinedTextField(
+                    value = editText,
+                    onValueChange = { editText = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 5
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.updateMessage(msg.copy(text = editText.trim()))
+                    editingMessage = null
+                }) { Text("保存") }
+            },
             dismissButton = { TextButton(onClick = { editingMessage = null }) { Text("取消") } }
         )
     }

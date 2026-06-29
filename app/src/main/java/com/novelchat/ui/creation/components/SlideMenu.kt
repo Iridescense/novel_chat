@@ -35,6 +35,8 @@ fun SlideMenu(
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showAddDialog by remember { mutableStateOf(false) }
+
     Surface(
         modifier = modifier
             .width(300.dp)
@@ -129,18 +131,8 @@ fun SlideMenu(
                     ListItem(
                         headlineContent = { Text("角色管理") },
                         trailingContent = {
-                            var showAddDialog by remember { mutableStateOf(false) }
                             IconButton(onClick = { showAddDialog = true }) {
                                 Icon(Icons.Default.PersonAdd, contentDescription = "添加角色")
-                            }
-                            if (showAddDialog) {
-                                AddRoleDialog(
-                                    onConfirm = { name, color, avatarType, avatarValue ->
-                                        onAddRole(name, color, avatarType, avatarValue)
-                                        showAddDialog = false
-                                    },
-                                    onDismiss = { showAddDialog = false }
-                                )
                             }
                         }
                     )
@@ -179,6 +171,16 @@ fun SlideMenu(
                 }
             }
         }
+    }
+
+    if (showAddDialog) {
+        AddRoleDialog(
+            onConfirm = { name, color, avatarType, avatarValue ->
+                onAddRole(name, color, avatarType, avatarValue)
+                showAddDialog = false
+            },
+            onDismiss = { showAddDialog = false }
+        )
     }
 }
 

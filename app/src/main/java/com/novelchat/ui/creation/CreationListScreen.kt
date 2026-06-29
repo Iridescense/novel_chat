@@ -1,6 +1,7 @@
 package com.novelchat.ui.creation
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,6 +27,7 @@ fun CreationListScreen(
 ) {
     val novels by viewModel.novels.collectAsState()
     val showNewDialog by viewModel.showNewNovelDialog.collectAsState()
+    var menuNovel by remember { mutableStateOf<Novel?>(null) }
 
     Scaffold(
         topBar = {
@@ -83,7 +85,8 @@ fun CreationListScreen(
                 items(novels, key = { it.id }) { novel ->
                     NovelListItem(
                         novel = novel,
-                        onClick = { onOpenEditor(novel.id) }
+                        onClick = { onOpenEditor(novel.id) },
+                        onLongClick = { menuNovel = novel }
                     )
                     Divider(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -148,16 +151,46 @@ private fun NovelCreateDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+    // 长按菜单对话框
+    menuNovel?.let { novel ->
+        var newTitle by remember { mutableStateOf(novel.title) }
+        AlertDialog(
+            onDismissRequest = { menuNovel = null },
+            title = { Text(novel.title) },
+            text = {
+                Column {
+                    TextButton(onClick = {
+                        viewModel.showEditNovelDialog(novel)
+                        menuNovel = null
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.DriveFileRenameOutline, contentDescription = null)
+                        Spacer(Modifier.width(8.dp)); Text("重命名")
+                    }
+                    TextButton(onClick = {
+                        viewModel.deleteNovel(novel)
+                        menuNovel = null
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.width(8.dp)); Text("删除", color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { menuNovel = null }) { Text("关闭") } }
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun NovelListItem(
     novel: Novel,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         color = MaterialTheme.colorScheme.surface
     ) {
         Row(

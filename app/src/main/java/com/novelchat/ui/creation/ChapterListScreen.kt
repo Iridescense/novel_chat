@@ -1,6 +1,7 @@
 package com.novelchat.ui.creation
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,6 +30,7 @@ fun ChapterListScreen(
 
     val chapters by viewModel.chapters.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
+    var menuChapter by remember { mutableStateOf<Chapter?>(null) }
 
     Scaffold(
         topBar = {
@@ -91,7 +93,8 @@ fun ChapterListScreen(
                         chapter = chapter,
                         onClick = {
                             onOpenChapter(novelId, chapter.id, chapter.title)
-                        }
+                        },
+                        onLongClick = { menuChapter = chapter }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -127,17 +130,50 @@ fun ChapterListScreen(
             }
         )
     }
+
+    // 长按章节菜单
+    menuChapter?.let { chapter ->
+        var renameText by remember { mutableStateOf(chapter.title) }
+        AlertDialog(
+            onDismissRequest = { menuChapter = null },
+            title = { Text(chapter.title) },
+            text = {
+                Column {
+                    OutlinedTextField(value = renameText, onValueChange = { renameText = it },
+                        label = { Text("重命名") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                    TextButton(onClick = {
+                        viewModel.renameChapter(chapter, renameText.trim())
+                        menuChapter = null
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.DriveFileRenameOutline, contentDescription = null)
+                        Spacer(Modifier.width(8.dp)); Text("重命名")
+                    }
+                    TextButton(onClick = {
+                        viewModel.deleteChapter(chapter)
+                        menuChapter = null
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.width(8.dp)); Text("删除", color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { menuChapter = null }) { Text("关闭") } }
+        )
+    }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ChapterItem(
     chapter: Chapter,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         color = MaterialTheme.colorScheme.surface
     ) {
         Row(
