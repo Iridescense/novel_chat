@@ -2,7 +2,8 @@ package com.novelchat.ui.creation.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +23,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,6 +35,7 @@ import com.novelchat.ui.theme.NarratorText
 
 val dotSize = (16f / 4).sp
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MessageBubble(
     message: Message,
@@ -59,14 +60,12 @@ fun MessageBubble(
                 color = NarratorBg,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onDoubleTap = { onDoubleTap() },
-                            onLongPress = {
-                                if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
-                            }
-                        )
-                    }
+                    .combinedClickable(
+                        onClick = { onDoubleTap() },
+                        onLongClick = {
+                            if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
+                        }
+                    )
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     TextWithDot(
@@ -102,7 +101,7 @@ fun MessageBubble(
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = 3.dp),
             horizontalArrangement = if (isRight) Arrangement.End else Arrangement.Start,
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
             if (!isRight) {
                 avatar
@@ -133,14 +132,12 @@ fun MessageBubble(
                     color = bubbleColor,
                     modifier = Modifier
                         .widthIn(min = 40.dp, max = 280.dp)
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onDoubleTap = { onDoubleTap() },
-                                onLongPress = {
-                                    if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
-                                }
-                            )
-                        }
+                        .combinedClickable(
+                            onClick = { onDoubleTap() },
+                            onLongClick = {
+                                if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
+                            }
+                        )
                 ) {
                     Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                         TextWithDot(text = message.text,
