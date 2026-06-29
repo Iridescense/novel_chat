@@ -2,19 +2,32 @@ package com.novelchat.ui.creation.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.novelchat.data.model.Message
 import com.novelchat.data.model.Role
 import com.novelchat.ui.theme.HiddenNoteDot
@@ -27,18 +40,18 @@ fun MessageBubble(
     message: Message,
     role: Role?,
     isProtagonist: Boolean,
-    onLongClick: () -> Unit,
+    onDoubleTap: () -> Unit = {},
+    onLongClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val isNarrator = message.type == Message.TYPE_NARRATOR
     var showHiddenNote by remember { mutableStateOf(false) }
 
     if (isNarrator) {
-        // 旁白：居中显示
         Box(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp, horizontal = 32.dp),
+                .padding(vertical = 6.dp, horizontal = 32.dp),
             contentAlignment = Alignment.Center
         ) {
             Surface(
@@ -46,22 +59,23 @@ fun MessageBubble(
                 color = NarratorBg,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .combinedClickable(
-                        onClick = {},
-                        onLongClick = {
-                            if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
-                        }
-                    )
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onDoubleTap = { onDoubleTap() },
+                            onLongPress = {
+                                if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
+                            }
+                        )
+                    }
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = message.text,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyLarge,
                         color = NarratorText,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
                     )
-                    // 隐藏附注小圆点
                     if (message.hasHiddenNote) {
                         HiddenNoteDotIndicator(showHiddenNote, message.hiddenNote)
                     }
@@ -69,7 +83,6 @@ fun MessageBubble(
             }
         }
     } else {
-        // 对话：左对齐=他人，右对齐=主角
         val isRight = isProtagonist
         val bubbleColor = if (isRight) {
             MaterialTheme.colorScheme.primary
@@ -85,68 +98,107 @@ fun MessageBubble(
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(vertical = 2.dp, horizontal = 8.dp),
+                .padding(horizontal = 8.dp, vertical = 3.dp),
             horizontalArrangement = if (isRight) Arrangement.End else Arrangement.Start,
-            verticalAlignment = Alignment.Bottom
+            verticalAlignment = Alignment.Top
         ) {
             if (!isRight) {
-                // 他人：左侧显示头像
-                RoleAvatar(role, Modifier.size(32.dp))
+                // 他人头像 — 左侧，与消息框顶部对齐
+                RoleAvatar(role, Modifier.size(44.dp))
                 Spacer(modifier = Modifier.width(6.dp))
             }
 
-            Column(
-                horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
-                modifier = Modifier.widthIn(max = 280.dp)
-            ) {
-                // 角色名
-                if (!isRight && role != null) {
-                    Text(
-                        text = role.name,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = try {
-                            Color(android.graphics.Color.parseColor(role.color))
-                        } catch (_: Exception) {
-                            MaterialTheme.colorScheme.outline
-                        },
-                        modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
-                    )
+            // 消息内容区域（含角色名、气泡、隐藏附注）
+            Box {
+                Column(
+                    horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
+                    modifier = Modifier.widthIn(max = 280.dp)
+                ) {
+                    // 角色名（仅非主角显示）
+                    if (!isRight && role != null) {
+                        Text(
+                            text = role.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = try {
+                                Color(android.graphics.Color.parseColor(role.color))
+                            } catch (_: Exception) {
+                                MaterialTheme.colorScheme.outline
+                            },
+                            modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
+                        )
+                    }
+
+                    // 消息气泡
+                    Surface(
+                        shape = RoundedCornerShape(
+                            topStart = if (isRight) 16.dp else 4.dp,
+                            topEnd = if (isRight) 4.dp else 16.dp,
+                            bottomStart = 16.dp,
+                            bottomEnd = 16.dp
+                        ),
+                        color = bubbleColor,
+                        modifier = Modifier.pointerInput(Unit) {
+                            detectTapGestures(
+                                onDoubleTap = { onDoubleTap() },
+                                onLongPress = {
+                                    if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
+                                }
+                            )
+                        }
+                    ) {
+                        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                            Text(
+                                text = message.text,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontSize = 16.sp
+                                ),
+                                color = textColor
+                            )
+                        }
+                    }
+
+                    // 隐藏附注（展开时显示在气泡下方）
+                    if (message.hasHiddenNote && showHiddenNote) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
+                        ) {
+                            Text(
+                                text = message.hiddenNote ?: "",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
                 }
 
-                Surface(
-                    shape = RoundedCornerShape(
-                        topStart = if (isRight) 12.dp else 4.dp,
-                        topEnd = if (isRight) 4.dp else 12.dp,
-                        bottomStart = 12.dp,
-                        bottomEnd = 12.dp
-                    ),
-                    color = bubbleColor,
-                    modifier = Modifier
-                        .combinedClickable(
-                            onClick = {},
-                            onLongClick = {
-                                if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
-                                else onLongClick()
-                            }
-                        )
-                ) {
-                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                        Text(
-                            text = message.text,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = textColor
-                        )
-                        if (message.hasHiddenNote) {
-                            HiddenNoteDotIndicator(showHiddenNote, message.hiddenNote)
-                        }
+                // 隐藏附注小圆点：放在气泡右上角（主角）/ 左上角（他人）
+                // 与气泡重叠约一半
+                if (message.hasHiddenNote && !showHiddenNote) {
+                    Box(
+                        modifier = Modifier
+                            .align(if (isRight) Alignment.TopEnd else Alignment.TopStart)
+                            .offset(
+                                x = if (isRight) 0.dp else (-6).dp,
+                                y = 0.dp
+                            )
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(16.dp),
+                            shape = RoundedCornerShape(50),
+                            color = HiddenNoteDot
+                        ) {}
                     }
                 }
             }
 
             if (isRight) {
                 Spacer(modifier = Modifier.width(6.dp))
-                // 主角：右侧显示头像
-                RoleAvatar(role, Modifier.size(32.dp))
+                // 主角头像 — 右侧，与消息框顶部对齐
+                RoleAvatar(role, Modifier.size(44.dp))
             }
         }
     }
@@ -163,7 +215,7 @@ private fun HiddenNoteDotIndicator(
                 text = "●",
                 color = HiddenNoteDot,
                 style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(top = 2.dp)
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
         AnimatedVisibility(
@@ -192,7 +244,6 @@ fun RoleAvatar(
     modifier: Modifier = Modifier
 ) {
     if (role == null) {
-        // 无角色时的占位
         Surface(
             modifier = modifier,
             shape = RoundedCornerShape(50),
@@ -219,7 +270,10 @@ fun RoleAvatar(
                 } else {
                     role.name.take(1)
                 },
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                ),
                 color = MaterialTheme.colorScheme.onPrimary
             )
         }
