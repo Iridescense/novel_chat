@@ -195,21 +195,16 @@ fun ReaderScreen(
                                 }
                             }
                             is ReaderItem -> {
-                                AnimatedVisibility(
-                                    visible = true,
-                                    enter = slideInVertically { it }
-                                ) {
-                                    MessageBubble(
-                                        message = item.message,
-                                        role = item.role,
-                                        isProtagonist = item.isProtagonist,
-                                        enableDoubleTap = false,
-                                        onDoubleTap = {
-                                            if (item.message.hasHiddenNote)
-                                                viewModel.toggleHiddenNote(item.message.id)
-                                        }
-                                    )
-                                }
+                                MessageBubble(
+                                    message = item.message,
+                                    role = item.role,
+                                    isProtagonist = item.isProtagonist,
+                                    enableDoubleTap = false,
+                                    onDoubleTap = {
+                                        if (item.message.hasHiddenNote)
+                                            viewModel.toggleHiddenNote(item.message.id)
+                                    }
+                                )
                             }
                         }
                     }
