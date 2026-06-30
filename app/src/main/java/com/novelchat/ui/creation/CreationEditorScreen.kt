@@ -353,17 +353,17 @@ fun CreationEditorScreen(
                         Icon(Icons.Default.Edit, contentDescription = null)
                         Spacer(Modifier.width(8.dp)); Text("编辑消息")
                     }
+                    TextButton(onClick = { viewModel.startEditingHiddenNote(msg); actionMessage = null },
+                        modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.NoteAdd, contentDescription = null)
+                        Spacer(Modifier.width(8.dp)); Text("编辑隐藏标注")
+                    }
                     TextButton(onClick = {
                         viewModel.setInsertAfterId(msg.id)
                         actionMessage = null
                     }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.Add, contentDescription = null)
                         Spacer(Modifier.width(8.dp)); Text(if (isLast) "恢复到底部添加" else "添加消息（该条下方）")
-                    }
-                    TextButton(onClick = { viewModel.startEditingHiddenNote(msg); actionMessage = null },
-                        modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.NoteAdd, contentDescription = null)
-                        Spacer(Modifier.width(8.dp)); Text("编辑隐藏标注")
                     }
                     TextButton(onClick = { viewModel.deleteMessage(msg); actionMessage = null },
                         modifier = Modifier.fillMaxWidth()) {

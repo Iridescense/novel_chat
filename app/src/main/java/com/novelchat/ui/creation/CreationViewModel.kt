@@ -587,11 +587,19 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
                     )
                 }
             }
-            // 写完后清空缓冲，下次从 Room 读取
+            // 写完后清空缓冲
             segmentMessageBuffer.clear()
-            // 重新加载当前段的消息（从 Room 拿到正 ID）
-            if (currentSegmentRoomId > 0L) {
-                _messages.value = repository.getMessagesBySegmentIdSync(currentSegmentRoomId)
+            // 从 Room 重新加载所有段的消息到缓冲，让 refreshAllMessages 能读到全部
+            val curChapter = currentChapter.value
+            if (curChapter != null) {
+                val segList = repository.getSegmentsByChapterIdSync(curChapter.id)
+                for (seg in segList) {
+                    val roomMsgs = repository.getMessagesBySegmentIdSync(seg.id)
+                    segmentMessageBuffer[seg.id] = roomMsgs
+                    if (seg.id == currentSegmentRoomId) {
+                        _messages.value = roomMsgs
+                    }
+                }
             }
             _novel.value?.let { novel ->
                 repository.updateNovel(

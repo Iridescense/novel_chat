@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
@@ -34,6 +35,13 @@ fun CreationListScreen(
     var menuNovel by remember { mutableStateOf<Novel?>(null) }
     val scope = rememberCoroutineScope()
     var bookshelfStatus by remember { mutableStateOf<Map<Long, Boolean>>(emptyMap()) }
+
+    // 离开创作台时清理对话框状态，避免书架侧共用 ViewModel 导致闪弹
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.hideNewNovelDialog()
+        }
+    }
 
     // 检查剧本是否已在书架中
     fun checkBookshelfStatus(novelId: Long) {
@@ -125,6 +133,9 @@ fun CreationListScreen(
     menuNovel?.let { novel ->
         var renameText by remember { mutableStateOf(novel.title) }
         var descText by remember { mutableStateOf(novel.description) }
+        val isInBookshelf by remember { derivedStateOf { bookshelfStatus[novel.id] ?: false } }
+        // 检查书架状态
+        LaunchedEffect(novel.id) { checkBookshelfStatus(novel.id) }
 
         AlertDialog(
             onDismissRequest = { menuNovel = null },
@@ -136,29 +147,33 @@ fun CreationListScreen(
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(value = descText, onValueChange = { descText = it },
                         label = { Text("简介") }, maxLines = 3, modifier = Modifier.fillMaxWidth())
-                    Spacer(Modifier.height(8.dp))
-                                val isInBookshelf = bookshelfStatus[novel.id] ?: false
-                    // 检查状态（第一次打开时触发检查）
-                    LaunchedEffect(novel.id) { checkBookshelfStatus(novel.id) }
+                    Spacer(Modifier.height(12.dp))
 
-                    TextButton(
-                        onClick = {
-                            viewModel.addToBookshelf(novel.id)
-                            bookshelfStatus = bookshelfStatus + (novel.id to true)
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isInBookshelf
-                    ) {
-                        Icon(
-                            if (isInBookshelf) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                            contentDescription = null,
-                            tint = if (isInBookshelf) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            if (isInBookshelf) "已在书架中" else "添加至书架",
-                            color = if (isInBookshelf) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface
-                        )
+                    // 添加至书架 / 更新书架副本
+                    if (isInBookshelf) {
+                        TextButton(
+                            onClick = {
+                                viewModel.updateBookshelfCopy(novel.id)
+                                scope.launch { checkBookshelfStatus(novel.id) }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.Sync, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(8.dp))
+                            Text("更新书架副本", color = MaterialTheme.colorScheme.onSurface)
+                        }
+                    } else {
+                        TextButton(
+                            onClick = {
+                                viewModel.addToBookshelf(novel.id)
+                                bookshelfStatus = bookshelfStatus + (novel.id to true)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.BookmarkBorder, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(8.dp))
+                            Text("添加至书架", color = MaterialTheme.colorScheme.onSurface)
+                        }
                     }
                     TextButton(onClick = {
                         viewModel.deleteNovel(novel)

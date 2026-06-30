@@ -2,8 +2,7 @@ package com.novelchat.ui.creation.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -59,12 +59,14 @@ fun MessageBubble(
                 color = NarratorBg,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .combinedClickable(
-                        onClick = { onDoubleTap() },
-                        onLongClick = {
-                            if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
-                        }
-                    )
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onDoubleTap = { onDoubleTap() },
+                            onLongClick = {
+                                if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
+                            }
+                        )
+                    }
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -117,7 +119,7 @@ fun MessageBubble(
                         modifier = Modifier.padding(bottom = 2.dp))
                 }
 
-                // 气泡（宽度自适应文字）
+                // 气泡（宽度自适应文字，不填满整行，像微信那样短消息窄气泡靠右）
                 Surface(
                     shape = RoundedCornerShape(
                         topStart = if (isRight) 16.dp else 4.dp,
@@ -127,19 +129,21 @@ fun MessageBubble(
                     color = bubbleColor,
                     modifier = Modifier
                         .widthIn(min = 40.dp, max = 280.dp)
-                        .combinedClickable(
-                            onClick = { onDoubleTap() },
-                            onLongClick = {
-                                if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
-                            }
-                        )
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onDoubleTap = { onDoubleTap() },
+                                onLongClick = {
+                                    if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
+                                }
+                            )
+                        }
                 ) {
                     Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                         TextWithDot(text = message.text,
                             showDot = message.hasHiddenNote && !showHiddenNote,
                             style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
                             color = textColor,
-                            textAlign = if (isRight) TextAlign.End else TextAlign.Start)
+                            textAlign = TextAlign.Start)
                     }
                 }
 
@@ -151,7 +155,7 @@ fun MessageBubble(
                         Text(message.hiddenNote ?: "",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = if (isRight) TextAlign.End else TextAlign.Start,
+                            textAlign = TextAlign.Start,
                             modifier = Modifier.padding(8.dp))
                     }
                 }

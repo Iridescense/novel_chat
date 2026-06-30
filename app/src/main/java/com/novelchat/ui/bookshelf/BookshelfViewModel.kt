@@ -101,7 +101,8 @@ class BookshelfViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun removeNovelFromBookshelf(novel: Novel) {
         viewModelScope.launch {
-            repository.deleteNovel(novel)
+            // 从书架移除：标记 isInBookshelf=false，不清除数据，不影响创作台原件
+            repository.updateNovel(novel.copy(isInBookshelf = false))
         }
     }
 
@@ -109,6 +110,14 @@ class BookshelfViewModel(application: Application) : AndroidViewModel(applicatio
     fun addToBookshelf(novelId: Long) {
         viewModelScope.launch {
             repository.deepCopyNovelToBookshelf(novelId)
+        }
+    }
+
+    /** 书架副本 → 创作台原件（反向复制），返回新原件的 ID */
+    fun copyToCreation(novel: Novel, onResult: (Long) -> Unit = {}) {
+        viewModelScope.launch {
+            val originalId = repository.deepCopyNovelToOriginal(novel.id)
+            if (originalId > 0L) onResult(originalId)
         }
     }
 

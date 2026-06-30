@@ -44,6 +44,11 @@ fun BookshelfScreen(
     val showNewDialog by viewModel.showNewNovelDialog.collectAsState()
     val editingNovel by viewModel.editingNovel.collectAsState()
 
+    // 进入书架时清理创作台可能遗留的对话框状态（两个屏共用 BookshelfViewModel）
+    LaunchedEffect(Unit) {
+        viewModel.hideNewNovelDialog()
+    }
+
     // 长按菜单状态
     var menuNovel by remember { mutableStateOf<Novel?>(null) }
 
@@ -289,6 +294,15 @@ fun BookshelfScreen(
             title = { Text(novel.title) },
             text = {
                 Column {
+                    TextButton(onClick = {
+                        viewModel.copyToCreation(novel) { newId ->
+                            menuNovel = null
+                            onOpenCreation(newId)
+                        }
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Edit, contentDescription = null)
+                        Spacer(Modifier.width(8.dp)); Text("编辑到创作台")
+                    }
                     TextButton(onClick = {
                         exportLauncher.launch("${novel.title}.json")
                     }, modifier = Modifier.fillMaxWidth()) {
