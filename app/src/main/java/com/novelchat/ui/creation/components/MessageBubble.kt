@@ -41,8 +41,10 @@ fun MessageBubble(
     message: Message,
     role: Role?,
     isProtagonist: Boolean,
+    onTap: (() -> Unit)? = null,
     onDoubleTap: () -> Unit = {},
     onLongClick: () -> Unit = {},
+    enableDoubleTap: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val isNarrator = message.type == Message.TYPE_NARRATOR
@@ -62,7 +64,8 @@ fun MessageBubble(
                     .fillMaxWidth()
                     .pointerInput(Unit) {
                         detectTapGestures(
-                            onDoubleTap = { onDoubleTap() },
+                            onTap = if (!enableDoubleTap && onTap != null) {{ onTap() }} else null,
+                            onDoubleTap = if (enableDoubleTap) {{ onDoubleTap() }} else null,
                             onLongPress = {
                                 if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
                             }
@@ -132,7 +135,8 @@ fun MessageBubble(
                         .widthIn(min = 40.dp, max = 280.dp)
                         .pointerInput(Unit) {
                             detectTapGestures(
-                                onDoubleTap = { onDoubleTap() },
+                                onTap = if (!enableDoubleTap && onTap != null) {{ onTap() }} else null,
+                                onDoubleTap = if (enableDoubleTap) {{ onDoubleTap() }} else null,
                                 onLongPress = {
                                     if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
                                 }

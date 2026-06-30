@@ -67,11 +67,26 @@ fun ReaderScreen(
         }
     }
 
+    // 当前可见的最后一条消息所属的章节名
+    val currentChapterTitle = remember(items, visibleCount) {
+        if (items.isEmpty()) ""
+        else items[items.size.coerceAtMost(visibleCount) - 1].chapterTitle
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(viewModel.novel.collectAsState().value?.title ?: "阅读",
-                    style = MaterialTheme.typography.titleMedium) },
+                title = {
+                    Column {
+                        Text(viewModel.novel.collectAsState().value?.title ?: "阅读",
+                            style = MaterialTheme.typography.titleMedium)
+                        if (currentChapterTitle.isNotBlank()) {
+                            Text(currentChapterTitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.outline)
+                        }
+                    }
+                },
                 navigationIcon = { IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "返回") } },
                 actions = { IconButton(onClick = { viewModel.toggleSettings() }) {
@@ -96,16 +111,33 @@ fun ReaderScreen(
                 // 点触推进模式：点击增加可见消息数
                 val displayCount = if (showAll) items.size else visibleCount
 
-                // 带节分割线的显示列表
+                // 带章节/节分割线的显示列表
                 val displayItems = remember(items, displayCount) {
                     val result = mutableListOf<Any>()
                     var lastSegId = -1L
-                    items.take(displayCount).forEach { item ->
+                    var lastChapterTitle = ""
+                    items.take(displayCount).forEachIndexed { idx, item ->
+                        // 章节分割线
+                        if (item.chapterTitle != lastChapterTitle && lastChapterTitle.isNotBlank()) {
+                            result.add("chapter_end_$lastChapterTitle")
+                        }
+                        if (item.chapterTitle != lastChapterTitle) {
+                            result.add("chapter_start_${item.chapterTitle}")
+                            lastChapterTitle = item.chapterTitle
+                        }
+                        // 节分割线
                         if (item.segmentId != lastSegId) {
                             result.add("divider_${item.segmentId}")
                             lastSegId = item.segmentId
                         }
                         result.add(item)
+                        // 显示到最后一章末尾但还有后续章节
+                        if (idx == displayCount - 1 && displayCount < items.size) {
+                            val nextChapter = items[displayCount].chapterTitle
+                            if (nextChapter != item.chapterTitle) {
+                                result.add("chapter_end_${item.chapterTitle}")
+                            }
+                        }
                     }
                     result
                 }
@@ -135,11 +167,31 @@ fun ReaderScreen(
                     }) { _, item ->
                         when (item) {
                             is String -> {
-                                // 分割线
-                                Box(Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 8.dp)) {
-                                    HorizontalDivider(
-                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                                    )
+                                if (item.startsWith("chapter_start_")) {
+                                    // 章节开始
+                                    val title = item.removePrefix("chapter_start_")
+                                    Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                                        contentAlignment = Alignment.Center) {
+                                        Text("——  $title  ——",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.primary)
+                                    }
+                                } else if (item.startsWith("chapter_end_")) {
+                                    // 章节结束（提示点击继续）
+                                    val title = item.removePrefix("chapter_end_")
+                                    Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                                        contentAlignment = Alignment.Center) {
+                                        Text("——  $title 完 · 点击继续  ——",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.outline)
+                                    }
+                                } else {
+                                    // 节分割线
+                                    Box(Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 8.dp)) {
+                                        HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                        )
+                                    }
                                 }
                             }
                             is ReaderItem -> {
@@ -151,6 +203,7 @@ fun ReaderScreen(
                                         message = item.message,
                                         role = item.role,
                                         isProtagonist = item.isProtagonist,
+                                        enableDoubleTap = false,
                                         onDoubleTap = {
                                             if (item.message.hasHiddenNote)
                                                 viewModel.toggleHiddenNote(item.message.id)

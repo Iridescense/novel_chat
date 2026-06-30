@@ -692,8 +692,8 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
 
     fun toggleChapterStatus(chapterId: Long = currentChapter.value?.id ?: 0L) {
         if (chapterId == 0L) return
-        val chapter = repository.getChapterById(chapterId) ?: return
         viewModelScope.launch {
+            val chapter = repository.getChapterById(chapterId) ?: return@launch
             val newStatus = if (chapter.status == Chapter.STATUS_DRAFT) {
                 Chapter.STATUS_COMPLETED
             } else {

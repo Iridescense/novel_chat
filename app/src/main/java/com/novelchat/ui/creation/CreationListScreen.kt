@@ -25,14 +25,16 @@ import com.novelchat.data.model.Novel
 import com.novelchat.ui.bookshelf.BookshelfViewModel
 import kotlinx.coroutines.launch
 
+import androidx.compose.ui.platform.LocalContext
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreationListScreen(
     onOpenEditor: (novelId: Long) -> Unit,
-    viewModel: BookshelfViewModel = viewModel()
+    bookshelfViewModel: BookshelfViewModel = viewModel()
 ) {
-    val novels by viewModel.allNovels.collectAsState()
-    val showNewDialog by viewModel.showNewNovelDialog.collectAsState()
+    val novels by bookshelfViewModel.allNovels.collectAsState()
+    val showNewDialog by bookshelfViewModel.showNewNovelDialog.collectAsState()
     var menuNovel by remember { mutableStateOf<Novel?>(null) }
     val scope = rememberCoroutineScope()
     var bookshelfStatus by remember { mutableStateOf<Map<Long, Boolean>>(emptyMap()) }
@@ -40,14 +42,14 @@ fun CreationListScreen(
     // 离开创作台时清理对话框状态，避免书架侧共用 ViewModel 导致闪弹
     DisposableEffect(Unit) {
         onDispose {
-            viewModel.hideNewNovelDialog()
+            bookshelfViewModel.hideNewNovelDialog()
         }
     }
 
     // 检查剧本是否已在书架中
     fun checkBookshelfStatus(novelId: Long) {
         scope.launch {
-            bookshelfStatus = bookshelfStatus + (novelId to viewModel.hasBookshelfCopy(novelId))
+            bookshelfStatus = bookshelfStatus + (novelId to bookshelfViewModel.hasBookshelfCopy(novelId))
         }
     }
 
@@ -62,7 +64,7 @@ fun CreationListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { viewModel.showNewNovelDialog() },
+                onClick = { bookshelfViewModel.showNewNovelDialog() },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "新建剧本")
@@ -108,7 +110,8 @@ fun CreationListScreen(
                     NovelListItem(
                         novel = novel,
                         onClick = { onOpenEditor(novel.id) },
-                        onLongClick = { menuNovel = novel }
+                        onLongClick = { menuNovel = novel },
+                        onToggleStatus = { bookshelfViewModel.toggleNovelStatus(novel) }
                     )
                     Divider(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -123,10 +126,10 @@ fun CreationListScreen(
     if (showNewDialog) {
         NovelCreateDialog(
             onConfirm = { title, description ->
-                viewModel.createNovel(title, description)
-                viewModel.hideNewNovelDialog()
+                bookshelfViewModel.createNovel(title, description)
+                bookshelfViewModel.hideNewNovelDialog()
             },
-            onDismiss = { viewModel.hideNewNovelDialog() }
+            onDismiss = { bookshelfViewModel.hideNewNovelDialog() }
         )
     }
 
@@ -154,7 +157,7 @@ fun CreationListScreen(
                     if (isInBookshelf) {
                         TextButton(
                             onClick = {
-                                viewModel.updateBookshelfCopy(novel.id)
+                                bookshelfViewModel.updateBookshelfCopy(novel.id)
                                 scope.launch { checkBookshelfStatus(novel.id) }
                             },
                             modifier = Modifier.fillMaxWidth()
@@ -166,7 +169,7 @@ fun CreationListScreen(
                     } else {
                         TextButton(
                             onClick = {
-                                viewModel.addToBookshelf(novel.id)
+                                bookshelfViewModel.addToBookshelf(novel.id)
                                 bookshelfStatus = bookshelfStatus + (novel.id to true)
                             },
                             modifier = Modifier.fillMaxWidth()
@@ -177,7 +180,7 @@ fun CreationListScreen(
                         }
                     }
                     TextButton(onClick = {
-                        viewModel.deleteNovel(novel)
+                        bookshelfViewModel.deleteNovel(novel)
                         menuNovel = null
                     }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
@@ -187,7 +190,7 @@ fun CreationListScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.updateNovel(novel.id, renameText.trim(), descText.trim(), novel.coverColor)
+                    bookshelfViewModel.updateNovel(novel.id, renameText.trim(), descText.trim(), novel.coverColor)
                     menuNovel = null
                 }) { Text("保存") }
             },
@@ -243,7 +246,8 @@ private fun NovelCreateDialog(
 private fun NovelListItem(
     novel: Novel,
     onClick: () -> Unit,
-    onLongClick: () -> Unit
+    onLongClick: () -> Unit,
+    onToggleStatus: () -> Unit = {}
 ) {
     Surface(
         modifier = Modifier
@@ -268,9 +272,7 @@ private fun NovelListItem(
             Surface(
                 shape = MaterialTheme.shapes.extraSmall,
                 color = statusColor.copy(alpha = 0.15f),
-                modifier = Modifier.clickable {
-                    viewModel.toggleNovelStatus(novel)
-                }
+                modifier = Modifier.clickable { onToggleStatus() }
             ) {
                 Text(
                     text = statusText,

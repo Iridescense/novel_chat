@@ -194,7 +194,8 @@ fun CreationEditorScreen(
                                     message = msg,
                                     role = role,
                                     isProtagonist = isPro,
-                                    onDoubleTap = {
+                                    enableDoubleTap = false,
+                                    onTap = {
                                         actionMessage = msg
                                     }
                                 )
