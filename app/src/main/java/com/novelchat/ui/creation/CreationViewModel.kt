@@ -173,14 +173,19 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             currentSegment.collect { segment ->
                 if (segment != null) {
-                    // 先把当前节的缓冲存起来
-                    if (currentSegmentRoomId > 0L && _messages.value.isNotEmpty()) {
-                        segmentMessageBuffer[currentSegmentRoomId] = _messages.value
+                    val newSegId = segment.id
+                    // 真正的段切换（ID 变了才需要保存旧段 + 加载新段）
+                    if (newSegId != currentSegmentRoomId) {
+                        // 先把当前节的缓冲存起来
+                        if (currentSegmentRoomId > 0L && _messages.value.isNotEmpty()) {
+                            segmentMessageBuffer[currentSegmentRoomId] = _messages.value
+                        }
+                        currentSegmentRoomId = newSegId
+                        // 从缓冲区或 Room 加载
+                        _messages.value = segmentMessageBuffer[newSegId]
+                            ?: repository.getMessagesBySegmentIdSync(newSegId)
+                        refreshAllMessages()
                     }
-                    currentSegmentRoomId = segment.id
-                    // 从缓冲区或 Room 加载
-                    _messages.value = segmentMessageBuffer[segment.id]
-                        ?: repository.getMessagesBySegmentIdSync(segment.id)
                 }
             }
         }
@@ -205,10 +210,12 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
         val segList = _segments.value
         val all = mutableListOf<Pair<Segment, Message>>()
         for (seg in segList) {
-            val msgs = segmentMessageBuffer[seg.id] ?: if (seg.id == currentSegmentRoomId) {
+            // 当前段始终用 _messages.value（最新），不走缓冲，避免 setSegmentProtagonist
+            // 等操作把缓冲覆盖成旧数据后新消息显示不出来
+            val msgs = if (seg.id == currentSegmentRoomId) {
                 _messages.value
             } else {
-                emptyList()
+                segmentMessageBuffer[seg.id] ?: emptyList()
             }
             for (msg in msgs) {
                 all.add(seg to msg)
