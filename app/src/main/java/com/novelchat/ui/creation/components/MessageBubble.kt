@@ -2,6 +2,7 @@ package com.novelchat.ui.creation.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,7 +63,7 @@ fun MessageBubble(
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onDoubleTap = { onDoubleTap() },
-                            onLongClick = {
+                            onLongPress = {
                                 if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
                             }
                         )
@@ -132,7 +133,7 @@ fun MessageBubble(
                         .pointerInput(Unit) {
                             detectTapGestures(
                                 onDoubleTap = { onDoubleTap() },
-                                onLongClick = {
+                                onLongPress = {
                                     if (message.hasHiddenNote) showHiddenNote = !showHiddenNote
                                 }
                             )
