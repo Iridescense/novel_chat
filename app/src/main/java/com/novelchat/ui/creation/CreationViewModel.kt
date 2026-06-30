@@ -180,6 +180,20 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    /** 从 Room 加载章节所有节的消息到本地缓冲 */
+    private fun loadAllChapterMessages(chapterId: Long) {
+        viewModelScope.launch {
+            val segList = repository.getSegmentsByChapterIdSync(chapterId)
+            for (seg in segList) {
+                if (!segmentMessageBuffer.containsKey(seg.id)) {
+                    val msgs = repository.getMessagesBySegmentIdSync(seg.id)
+                    segmentMessageBuffer[seg.id] = msgs
+                }
+            }
+            refreshAllMessages()
+        }
+    }
+
     private fun refreshAllMessages() {
         // 从本地 _segments + 缓冲区构建全量显示列表
         val segList = _segments.value
