@@ -138,7 +138,7 @@ interface NovelDao {
     @Query("SELECT * FROM segments WHERE chapterId IN (SELECT id FROM chapters WHERE novelId = :novelId) ORDER BY orderIndex ASC")
     suspend fun getSegmentsByNovelIdSync(novelId: Long): List<Segment>
 
-    @Query("SELECT * FROM messages WHERE segmentId IN (SELECT id FROM segments WHERE chapterId IN (SELECT id FROM chapters WHERE novelId = :novelId)) ORDER BY orderIndex ASC")
+    @Query("SELECT * FROM messages WHERE segmentId IN (SELECT id FROM segments WHERE chapterId IN (SELECT id FROM chapters WHERE novelId = :novelId)) ORDER BY segmentId ASC, orderIndex ASC")
     suspend fun getMessagesByNovelIdSync(novelId: Long): List<Message>
 
     // ========== 全量插入（用于导入） ==========
