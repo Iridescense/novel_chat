@@ -127,7 +127,9 @@ class BookshelfViewModel(application: Application) : AndroidViewModel(applicatio
     fun exportNovelToUri(novel: Novel, uri: android.net.Uri) {
         viewModelScope.launch {
             try {
-                val json = com.novelchat.util.JsonExporter.exportNovelToString(repository, novel.id)
+                // 书架副本则导出创作台原件（始终包含最新消息内容）
+                val exportId = novel.sourceNovelId ?: novel.id
+                val json = com.novelchat.util.JsonExporter.exportNovelToString(repository, exportId)
                 val app = getApplication<NovelChatApp>()
                 app.contentResolver.openOutputStream(uri)?.use {
                     it.write(json.toByteArray(Charsets.UTF_8))
@@ -142,7 +144,9 @@ class BookshelfViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             try {
                 val app = getApplication<NovelChatApp>()
-                val json = com.novelchat.util.JsonExporter.exportNovelToString(repository, novel.id)
+                // 书架副本则导出创作台原件（始终包含最新消息内容）
+                val exportId = novel.sourceNovelId ?: novel.id
+                val json = com.novelchat.util.JsonExporter.exportNovelToString(repository, exportId)
                 val fileName = "${novel.title}.json".replace(" ", "_")
                 val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
                     android.os.Environment.DIRECTORY_DOWNLOADS)

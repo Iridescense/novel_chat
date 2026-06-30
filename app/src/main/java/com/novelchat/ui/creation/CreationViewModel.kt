@@ -139,34 +139,49 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
             }
         }
 
-        // 监听当前章节变化 → 加载节
+        // 监听当前章节变化 → 加载节（用 flatMapLatest 避免嵌套 collect 阻塞）
         viewModelScope.launch {
-            currentChapter.collect { chapter ->
-                if (chapter != null) {
-                    repository.getSegmentsByChapterId(chapter.id).collect { segList ->
-                        _segments.value = segList
-                        if (segList.isEmpty()) {
-                            val newSegId = repository.insertSegment(
-                                Segment(chapterId = chapter.id, title = "", orderIndex = 0)
-                            )
-                        }
-                        // 仅在章节切换时重置到第一节，避免设置主角等操作导致段索引被复位
-                        if (chapter.id != previousChapterId) {
-                            _currentSegmentIndex.value = 0
-                            previousChapterId = chapter.id
-                        }
+            currentChapter
+                .flatMapLatest { chapter ->
+                    if (chapter != null) {
+                        repository.getSegmentsByChapterId(chapter.id)
+                    } else {
+                        flowOf(emptyList())
                     }
                 }
-            }
+                .collect { segList ->
+                    _segments.value = segList
+                    if (segList.isEmpty()) {
+                        val ch = currentChapter.value
+                        if (ch != null) {
+                            repository.insertSegment(
+                                Segment(chapterId = ch.id, title = "", orderIndex = 0)
+                            )
+                        }
+                    }
+                    // 仅在章节切换时重置到第一节
+                    val ch = currentChapter.value
+                    if (ch != null && ch.id != previousChapterId) {
+                        _currentSegmentIndex.value = 0
+                        previousChapterId = ch.id
+                    }
+                }
         }
 
-        // 监听当前章节变化 → 加载所有节的消息
+        // 监听当前章节变化 → 加载所有节的消息（用 flatMapLatest 避免旧章节的加载干扰）
         viewModelScope.launch {
-            currentChapter.collect { chapter ->
-                if (chapter != null) {
-                    loadAllChapterMessages(chapter.id)
+            currentChapter
+                .flatMapLatest { chapter ->
+                    if (chapter != null) {
+                        flow {
+                            loadAllChapterMessages(chapter.id)
+                            emit(Unit)
+                        }
+                    } else {
+                        flowOf(Unit)
+                    }
                 }
-            }
+                .collect { }
         }
 
         // 监听当前节变化 → 切换时保存/恢复本地缓冲
@@ -191,18 +206,16 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    /** 从 Room 加载章节所有节的消息到本地缓冲 */
-    private fun loadAllChapterMessages(chapterId: Long) {
-        viewModelScope.launch {
-            val segList = repository.getSegmentsByChapterIdSync(chapterId)
-            for (seg in segList) {
-                if (!segmentMessageBuffer.containsKey(seg.id)) {
-                    val msgs = repository.getMessagesBySegmentIdSync(seg.id)
-                    segmentMessageBuffer[seg.id] = msgs
-                }
+    /** 从 Room 加载章节所有节的消息到本地缓冲（suspend 以便 flatMapLatest 能取消它） */
+    private suspend fun loadAllChapterMessages(chapterId: Long) {
+        val segList = repository.getSegmentsByChapterIdSync(chapterId)
+        for (seg in segList) {
+            if (!segmentMessageBuffer.containsKey(seg.id)) {
+                val msgs = repository.getMessagesBySegmentIdSync(seg.id)
+                segmentMessageBuffer[seg.id] = msgs
             }
-            refreshAllMessages()
         }
+        refreshAllMessages()
     }
 
     private fun refreshAllMessages() {
