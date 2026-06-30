@@ -44,7 +44,7 @@ fun BottomInputBar(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 按钮1：主角 — 选定主角后按钮置灰不可点击
+                // 按钮1：主角 — 始终可点击，无主角时弹窗选择，有主角时直接切换到主角模式
                 val protagonistSet = protagonistName != "未设置"
                 Button(
                     onClick = {
@@ -53,14 +53,10 @@ fun BottomInputBar(
                             showProtagonistDialog = true
                         }
                     },
-                    enabled = !protagonistSet,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (senderType == SenderType.PROTAGONIST)
                             MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surfaceVariant,
-                        disabledContainerColor = if (senderType == SenderType.PROTAGONIST)
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        else MaterialTheme.colorScheme.surfaceVariant
                     ),
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                     modifier = Modifier.height(32.dp)
@@ -180,7 +176,7 @@ fun BottomInputBar(
                         }
                     },
                     modifier = Modifier.size(48.dp),
-                    enabled = text.isNotBlank(),
+                    enabled = text.isNotBlank() && !(senderType == SenderType.OTHER && selectedOtherRoleId == null),
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     )

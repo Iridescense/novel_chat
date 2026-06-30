@@ -20,6 +20,8 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     private var currentSegmentRoomId: Long = 0L
     // 每节的消息本地缓冲（segmentId → 消息列表），切换节时不丢失
     private val segmentMessageBuffer = mutableMapOf<Long, List<Message>>()
+    // 跟踪当前章节 ID，判断是否是章节切换
+    private var previousChapterId: Long = -1L
 
     // 剧本数据
     private val _novel = MutableStateFlow<Novel?>(null)
@@ -148,7 +150,11 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
                                 Segment(chapterId = chapter.id, title = "", orderIndex = 0)
                             )
                         }
-                        _currentSegmentIndex.value = 0
+                        // 仅在章节切换时重置到第一节，避免设置主角等操作导致段索引被复位
+                        if (chapter.id != previousChapterId) {
+                            _currentSegmentIndex.value = 0
+                            previousChapterId = chapter.id
+                        }
                     }
                 }
             }
@@ -294,8 +300,16 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun setSegmentProtagonist(segment: Segment, roleId: Long?) {
+        // 立即更新本地状态，不等 Room Flow 回来
+        val updatedSeg = segment.copy(protagonistId = roleId)
+        val currentSegs = _segments.value.toMutableList()
+        val idx = currentSegs.indexOfFirst { it.id == segment.id }
+        if (idx >= 0) {
+            currentSegs[idx] = updatedSeg
+            _segments.value = currentSegs
+        }
         viewModelScope.launch {
-            repository.updateSegment(segment.copy(protagonistId = roleId))
+            repository.updateSegment(updatedSeg)
             markChanged()
         }
     }
@@ -539,23 +553,32 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     /** 将本地缓冲的所有消息写入 Room，完成后调用 onComplete */
     fun save(onComplete: () -> Unit = {}) {
         viewModelScope.launch {
-            val segId = currentSegmentRoomId
-            if (segId > 0L) {
-                // 删除该节在 Room 中的旧消息
+            // 先把当前段的消息存入缓冲
+            if (currentSegmentRoomId > 0L && _messages.value.isNotEmpty()) {
+                segmentMessageBuffer[currentSegmentRoomId] = _messages.value
+            }
+            // 遍历所有段缓冲，逐段写入 Room
+            for ((segId, msgs) in segmentMessageBuffer) {
                 val oldMsgs = repository.getMessagesBySegmentIdSync(segId)
                 oldMsgs.forEach { repository.deleteMessage(it) }
-                // 写入本地缓冲的消息（重新赋予正 ID）
-                _messages.value.forEach { msg ->
+                msgs.forEach { msg ->
                     repository.insertMessage(
                         msg.copy(id = 0, segmentId = segId)
                     )
                 }
+            }
+            // 写完后清空缓冲，下次从 Room 读取
+            segmentMessageBuffer.clear()
+            // 重新加载当前段的消息（从 Room 拿到正 ID）
+            if (currentSegmentRoomId > 0L) {
+                _messages.value = repository.getMessagesBySegmentIdSync(currentSegmentRoomId)
             }
             _novel.value?.let { novel ->
                 repository.updateNovel(
                     novel.copy(updatedAt = System.currentTimeMillis())
                 )
             }
+            refreshAllMessages()
             savedVersion = currentVersion
             _hasUnsavedChanges.value = false
             onComplete()
