@@ -63,7 +63,7 @@ fun ReaderScreen(
     // 自动滚动到最新
     LaunchedEffect(visibleCount) {
         if (visibleCount > 0 && items.isNotEmpty()) {
-            listState.animateScrollToItem((visibleCount - 1).coerceAtLeast(0))
+            listState.scrollToItem((visibleCount - 1).coerceAtLeast(0))
         }
     }
 

@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,8 +31,6 @@ import com.novelchat.util.AppModule
 import com.novelchat.util.JsonExporter
 import java.io.File
 import android.os.Environment
-import kotlinx.coroutines.launch
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun BookshelfScreen(
@@ -48,6 +47,7 @@ fun BookshelfScreen(
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // 导出文件选择器（单个剧本）
     val exportLauncher = rememberLauncherForActivityResult(
@@ -91,9 +91,15 @@ fun BookshelfScreen(
                 val app = context.applicationContext as NovelChatApp
                 val repo = AppModule.getRepository(app)
                 try {
-                    JsonExporter.importNovelFromUri(context, repo, it)
-                } catch (_: Exception) {
-                    // 导入失败忽略
+                    val newId = JsonExporter.importNovelFromUri(context, repo, it)
+                    scope.launch {
+                        snackbarHostState.showSnackbar("导入成功 ✓")
+                    }
+                } catch (e: Exception) {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("导入失败: ${e.message}")
+                    }
+                    e.printStackTrace()
                 }
             }
         }
@@ -104,6 +110,7 @@ fun BookshelfScreen(
     var showExportPicker by remember { mutableStateOf(false) }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("书架") },

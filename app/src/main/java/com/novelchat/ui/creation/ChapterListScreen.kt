@@ -99,6 +99,7 @@ fun ChapterListScreen(
                             onOpenChapter(novelId, chapter.id, chapter.title)
                         },
                         onLongClick = if (readOnly) ({}) else ({ menuChapter = chapter }),
+                        showStatus = !readOnly,
                         onToggleStatus = { if (!readOnly) viewModel.toggleChapterStatus(chapter.id) }
                     )
                     HorizontalDivider(
@@ -175,6 +176,7 @@ private fun ChapterItem(
     chapter: Chapter,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    showStatus: Boolean = true,
     onToggleStatus: () -> Unit = {}
 ) {
     Surface(
@@ -189,26 +191,28 @@ private fun ChapterItem(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 状态标签（点击即时切换）
-            val statusColor = if (chapter.status == Chapter.STATUS_COMPLETED) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.outline
+            if (showStatus) {
+                // 状态标签（点击即时切换）
+                val statusColor = if (chapter.status == Chapter.STATUS_COMPLETED) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.outline
+                }
+                val statusText = if (chapter.status == Chapter.STATUS_COMPLETED) "完成" else "草稿"
+                Surface(
+                    shape = MaterialTheme.shapes.extraSmall,
+                    color = statusColor.copy(alpha = 0.15f),
+                    modifier = Modifier.clickable { onToggleStatus() }
+                ) {
+                    Text(
+                        text = statusText,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = statusColor
+                    )
+                }
+                Spacer(Modifier.width(8.dp))
             }
-            val statusText = if (chapter.status == Chapter.STATUS_COMPLETED) "完成" else "草稿"
-            Surface(
-                shape = MaterialTheme.shapes.extraSmall,
-                color = statusColor.copy(alpha = 0.15f),
-                modifier = Modifier.clickable { onToggleStatus() }
-            ) {
-                Text(
-                    text = statusText,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = statusColor
-                )
-            }
-            Spacer(Modifier.width(8.dp))
             Icon(
                 Icons.Default.Description,
                 contentDescription = null,
