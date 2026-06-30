@@ -191,4 +191,25 @@ class NovelRepository(private val dao: NovelDao) {
         }
         return deepCopyNovelToBookshelf(sourceNovelId)
     }
+
+    /**
+     * 书架副本 → 创作台原件（反向复制），返回新原件 ID
+     */
+    suspend fun deepCopyNovelToOriginal(shelfNovelId: Long): Long {
+        val shelf = dao.getNovelById(shelfNovelId) ?: return -1L
+        val roles = dao.getRolesByNovelIdSync(shelfNovelId)
+        val chapters = dao.getChaptersByNovelIdSync(shelfNovelId)
+        val segments = dao.getSegmentsByNovelIdSync(shelfNovelId)
+        val messages = dao.getMessagesByNovelIdSync(shelfNovelId)
+
+        // 新原件：isInBookshelf=false, sourceNovelId=null
+        val originalNovel = shelf.copy(
+            id = 0,
+            isInBookshelf = false,
+            sourceNovelId = null,
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
+        )
+        return importNovel(originalNovel, roles, chapters, segments, messages)
+    }
 }
