@@ -1,6 +1,7 @@
 package com.novelchat.ui.creation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -97,7 +98,8 @@ fun ChapterListScreen(
                         onClick = {
                             onOpenChapter(novelId, chapter.id, chapter.title)
                         },
-                        onLongClick = if (readOnly) ({}) else ({ menuChapter = chapter })
+                        onLongClick = if (readOnly) ({}) else ({ menuChapter = chapter }),
+                        onToggleStatus = { if (!readOnly) viewModel.toggleChapterStatus(chapter.id) }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -172,7 +174,8 @@ fun ChapterListScreen(
 private fun ChapterItem(
     chapter: Chapter,
     onClick: () -> Unit,
-    onLongClick: () -> Unit
+    onLongClick: () -> Unit,
+    onToggleStatus: () -> Unit = {}
 ) {
     Surface(
         modifier = Modifier
@@ -186,6 +189,26 @@ private fun ChapterItem(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 状态标签（点击即时切换）
+            val statusColor = if (chapter.status == Chapter.STATUS_COMPLETED) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.outline
+            }
+            val statusText = if (chapter.status == Chapter.STATUS_COMPLETED) "完成" else "草稿"
+            Surface(
+                shape = MaterialTheme.shapes.extraSmall,
+                color = statusColor.copy(alpha = 0.15f),
+                modifier = Modifier.clickable { onToggleStatus() }
+            ) {
+                Text(
+                    text = statusText,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = statusColor
+                )
+            }
+            Spacer(Modifier.width(8.dp))
             Icon(
                 Icons.Default.Description,
                 contentDescription = null,

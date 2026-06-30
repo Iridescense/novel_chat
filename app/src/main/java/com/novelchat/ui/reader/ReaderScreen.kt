@@ -129,7 +129,7 @@ fun ReaderScreen(
                     itemsIndexed(displayItems, key = { _, item ->
                         when (item) {
                             is String -> item
-                            is ReaderItem -> "msg_${item.message.id}"
+                            is ReaderItem -> "msg_${item.message.id}_hn${item.message.hasHiddenNote}"
                             else -> "unknown"
                         }
                     }) { _, item ->

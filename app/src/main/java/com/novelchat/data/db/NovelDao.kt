@@ -70,6 +70,9 @@ interface NovelDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChapter(chapter: Chapter): Long
 
+    @Query("UPDATE chapters SET status = :status WHERE id = :id")
+    suspend fun updateChapterStatus(id: Long, status: String)
+
     @Update
     suspend fun updateChapter(chapter: Chapter)
 

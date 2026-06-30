@@ -159,10 +159,10 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
                             )
                         }
                     }
-                    // 仅在章节切换时重置到第一节
+                    // 仅在章节切换时跳到最后一节（退出再进来从最后编辑的位置开始）
                     val ch = currentChapter.value
                     if (ch != null && ch.id != previousChapterId) {
-                        _currentSegmentIndex.value = 0
+                        _currentSegmentIndex.value = (segList.size - 1).coerceAtLeast(0)
                         previousChapterId = ch.id
                     }
                 }
@@ -686,6 +686,26 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
                 }
                 repository.updateNovel(n.copy(status = newStatus, updatedAt = System.currentTimeMillis()))
                 _novel.value = n.copy(status = newStatus)
+            }
+        }
+    }
+
+    fun toggleChapterStatus(chapterId: Long = currentChapter.value?.id ?: 0L) {
+        if (chapterId == 0L) return
+        val chapter = repository.getChapterById(chapterId) ?: return
+        viewModelScope.launch {
+            val newStatus = if (chapter.status == Chapter.STATUS_DRAFT) {
+                Chapter.STATUS_COMPLETED
+            } else {
+                Chapter.STATUS_DRAFT
+            }
+            repository.updateChapterStatus(chapterId, newStatus)
+            // 更新本地 _chapters
+            val updated = _chapters.value.toMutableList()
+            val idx = updated.indexOfFirst { it.id == chapterId }
+            if (idx >= 0) {
+                updated[idx] = chapter.copy(status = newStatus)
+                _chapters.value = updated
             }
         }
     }

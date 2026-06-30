@@ -25,5 +25,11 @@ data class Chapter(
     val id: Long = 0,
     val novelId: Long,
     val title: String = "第一章",
+    val status: String = "draft",  // "draft" | "completed"
     val orderIndex: Int = 0
-)
+) {
+    companion object {
+        const val STATUS_DRAFT = "draft"
+        const val STATUS_COMPLETED = "completed"
+    }
+}

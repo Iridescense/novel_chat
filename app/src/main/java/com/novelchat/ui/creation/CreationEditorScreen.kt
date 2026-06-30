@@ -174,7 +174,7 @@ fun CreationEditorScreen(
                         itemsIndexed(displayItems, key = { _: Int, item: Pair<Segment?, Message?> ->
                             when {
                                 item.first != null -> "seg_${item.first!!.id}"
-                                item.second != null -> "msg_${item.second!!.id}"
+                                item.second != null -> "msg_${item.second!!.id}_hn${item.second!!.hasHiddenNote}"
                                 else -> "empty"
                             }
                         }) { _: Int, item: Pair<Segment?, Message?> ->
@@ -264,7 +264,7 @@ fun CreationEditorScreen(
                     roles = roles,
                     currentProtagonistId = currentProtagonist?.id,
                     hasUnsavedChanges = hasUnsavedChanges,
-                    novelStatus = novel?.status ?: "draft",
+                    chapterStatus = currentChapter?.status ?: "draft",
                     onSwitchSegment = { viewModel.switchSegment(it) },
                     onAddSegment = { viewModel.addSegment() },
                     onSegmentProtagonistChange = { seg, id -> viewModel.setSegmentProtagonist(seg, id) },
@@ -277,7 +277,7 @@ fun CreationEditorScreen(
                         viewModel.save()
                         scope.launch { snackbarHostState.showSnackbar("已保存 ✓") }
                     },
-                    onToggleStatus = { viewModel.toggleNovelStatus() },
+                    onToggleChapterStatus = { viewModel.toggleChapterStatus() },
                     onClose = { viewModel.closeSlideMenu() }
                 )
             }

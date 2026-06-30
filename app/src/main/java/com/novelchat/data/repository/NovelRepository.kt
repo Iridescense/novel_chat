@@ -54,6 +54,8 @@ class NovelRepository(private val dao: NovelDao) {
 
     suspend fun updateChapter(chapter: Chapter) = dao.updateChapter(chapter)
 
+    suspend fun updateChapterStatus(id: Long, status: String) = dao.updateChapterStatus(id, status)
+
     suspend fun deleteChapter(chapter: Chapter) = dao.deleteChapter(chapter)
 
     // ========== Segment ==========

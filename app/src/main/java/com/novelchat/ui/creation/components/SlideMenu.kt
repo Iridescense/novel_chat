@@ -26,14 +26,14 @@ fun SlideMenu(
     roles: List<Role>,
     currentProtagonistId: Long?,
     hasUnsavedChanges: Boolean,
-    novelStatus: String,
+    chapterStatus: String,
     onSwitchSegment: (Int) -> Unit,
     onAddSegment: () -> Unit,
     onSegmentProtagonistChange: (Segment, Long?) -> Unit,
     onAddRole: (String, String, String, String) -> Unit,
     onDeleteRole: (Role) -> Unit,
     onSave: () -> Unit,
-    onToggleStatus: () -> Unit,
+    onToggleChapterStatus: () -> Unit,
     onDeleteSegment: (Segment) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
@@ -75,12 +75,12 @@ fun SlideMenu(
                     .verticalScroll(rememberScrollState())
                     .padding(bottom = 16.dp)
             ) {
-                // 剧本状态
+                // 章节状态
                 ListItem(
-                    headlineContent = { Text("剧本状态") },
+                    headlineContent = { Text("章节状态") },
                     trailingContent = {
-                        TextButton(onClick = onToggleStatus) {
-                            Text(if (novelStatus == "draft") "标记为完成" else "变回草稿")
+                        TextButton(onClick = onToggleChapterStatus) {
+                            Text(if (chapterStatus == "draft") "标记为完成" else "变回草稿")
                         }
                         }
                     )

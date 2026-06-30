@@ -1,6 +1,7 @@
 package com.novelchat.ui.creation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -256,7 +257,7 @@ private fun NovelListItem(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 状态标签
+            // 状态标签（点击可即时切换）
             val statusColor = if (novel.status == Novel.STATUS_COMPLETED) {
                 MaterialTheme.colorScheme.primary
             } else {
@@ -266,7 +267,10 @@ private fun NovelListItem(
 
             Surface(
                 shape = MaterialTheme.shapes.extraSmall,
-                color = statusColor.copy(alpha = 0.15f)
+                color = statusColor.copy(alpha = 0.15f),
+                modifier = Modifier.clickable {
+                    viewModel.toggleNovelStatus(novel)
+                }
             ) {
                 Text(
                     text = statusText,
