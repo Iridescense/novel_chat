@@ -84,10 +84,10 @@ object JsonExporter {
         )
         return repository.importNovel(
             novel = importedNovel,
-            roles = export.roles.map { it.copy(id = 0) },
-            chapters = export.chapters.map { it.copy(id = 0) },
-            segments = export.segments.map { it.copy(id = 0) },
-            messages = export.messages.map { it.copy(id = 0) }
+            roles = export.roles,              // ID 重置由 importNovel 内部处理，
+            chapters = export.chapters,        // 外部保留原始 ID 以便正确建立映射
+            segments = export.segments,
+            messages = export.messages
         )
     }
 

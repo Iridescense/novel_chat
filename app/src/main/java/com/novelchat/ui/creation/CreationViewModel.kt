@@ -481,6 +481,7 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun updateMessage(message: Message) {
+        // 先找当前段
         val currentMsgs = _messages.value.toMutableList()
         val idx = currentMsgs.indexOfFirst { it.id == message.id }
         if (idx >= 0) {
@@ -488,16 +489,47 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
             _messages.value = currentMsgs
             refreshAllMessages()
             markChanged()
+            return
+        }
+        // 再找其他段的缓冲
+        for ((segId, msgs) in segmentMessageBuffer) {
+            val bufIdx = msgs.indexOfFirst { it.id == message.id }
+            if (bufIdx >= 0) {
+                val updatedBuf = msgs.toMutableList()
+                updatedBuf[bufIdx] = message
+                segmentMessageBuffer[segId] = updatedBuf
+                refreshAllMessages()
+                markChanged()
+                return
+            }
         }
     }
 
     fun deleteMessage(message: Message) {
-        val currentMsgs = _messages.value
-            .filter { it.id != message.id }
-            .mapIndexed { index, msg -> msg.copy(orderIndex = index) }
-        _messages.value = currentMsgs
-        refreshAllMessages()
-        markChanged()
+        // 先找当前段
+        val currentMsgs = _messages.value.toMutableList()
+        val idx = currentMsgs.indexOfFirst { it.id == message.id }
+        if (idx >= 0) {
+            currentMsgs.removeAt(idx)
+            currentMsgs.forEachIndexed { i, msg -> currentMsgs[i] = msg.copy(orderIndex = i) }
+            _messages.value = currentMsgs
+            refreshAllMessages()
+            markChanged()
+            return
+        }
+        // 再找其他段的缓冲
+        for ((segId, msgs) in segmentMessageBuffer) {
+            val bufIdx = msgs.indexOfFirst { it.id == message.id }
+            if (bufIdx >= 0) {
+                val updatedBuf = msgs.toMutableList()
+                updatedBuf.removeAt(bufIdx)
+                updatedBuf.forEachIndexed { i, msg -> updatedBuf[i] = msg.copy(orderIndex = i) }
+                segmentMessageBuffer[segId] = updatedBuf
+                refreshAllMessages()
+                markChanged()
+                return
+            }
+        }
     }
 
     fun moveMessage(fromIndex: Int, toIndex: Int) {
@@ -520,16 +552,34 @@ class CreationViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun saveHiddenNote(messageId: Long, noteText: String) {
-        val currentMsgs = _messages.value.toMutableList()
-        val idx = currentMsgs.indexOfFirst { it.id == messageId }
-        if (idx >= 0) {
-            currentMsgs[idx] = currentMsgs[idx].copy(
+        val updatedMsg: (Message) -> Message = { msg ->
+            msg.copy(
                 hasHiddenNote = noteText.isNotBlank(),
                 hiddenNote = noteText.ifBlank { null }
             )
+        }
+        // 先找当前段
+        val currentMsgs = _messages.value.toMutableList()
+        val idx = currentMsgs.indexOfFirst { it.id == messageId }
+        if (idx >= 0) {
+            currentMsgs[idx] = updatedMsg(currentMsgs[idx])
             _messages.value = currentMsgs
             refreshAllMessages()
             markChanged()
+            _editingHiddenNote.value = null
+            return
+        }
+        // 再找其他段的缓冲
+        for ((segId, msgs) in segmentMessageBuffer) {
+            val bufIdx = msgs.indexOfFirst { it.id == messageId }
+            if (bufIdx >= 0) {
+                val updatedBuf = msgs.toMutableList()
+                updatedBuf[bufIdx] = updatedMsg(updatedBuf[bufIdx])
+                segmentMessageBuffer[segId] = updatedBuf
+                refreshAllMessages()
+                markChanged()
+                break
+            }
         }
         _editingHiddenNote.value = null
     }

@@ -41,13 +41,7 @@ fun BookshelfScreen(
 ) {
     val novels by viewModel.novels.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
-    val showNewDialog by viewModel.showNewNovelDialog.collectAsState()
     val editingNovel by viewModel.editingNovel.collectAsState()
-
-    // 进入书架时清理创作台可能遗留的对话框状态（两个屏共用 BookshelfViewModel）
-    LaunchedEffect(Unit) {
-        viewModel.hideNewNovelDialog()
-    }
 
     // 长按菜单状态
     var menuNovel by remember { mutableStateOf<Novel?>(null) }
@@ -254,18 +248,6 @@ fun BookshelfScreen(
             confirmButton = {
                 TextButton(onClick = { showExportPicker = false }) { Text("取消") }
             }
-        )
-    }
-
-    // 新建剧本对话框
-    if (showNewDialog) {
-        NovelEditDialog(
-            title = "新建剧本",
-            initialTitle = "",
-            initialDescription = "",
-            initialCoverColor = "#FFF8DC",
-            onConfirm = { t, d, c -> viewModel.createNovel(t, d) },
-            onDismiss = { viewModel.hideNewNovelDialog() }
         )
     }
 
